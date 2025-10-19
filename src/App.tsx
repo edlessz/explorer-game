@@ -3,7 +3,9 @@ import "./App.css";
 import PlayerController from "./game/components/PlayerController";
 import Camera from "./game/engine/components/Camera";
 import ColorRenderer from "./game/engine/components/ColorRenderer";
+import Physics from "./game/engine/components/Physics";
 import TileMap from "./game/engine/components/TileMap";
+import TileMapCollider from "./game/engine/components/TileMapCollider";
 import Game from "./game/engine/Game";
 
 const game = new Game();
@@ -11,6 +13,8 @@ const game = new Game();
 const player = game.addEntity();
 player.addComponent(ColorRenderer).color = "#f00";
 player.addComponent(PlayerController);
+player.addComponent(Physics);
+player.addComponent(TileMapCollider);
 
 const camera = game.addEntity();
 camera.addComponent(Camera);
