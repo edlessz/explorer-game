@@ -1,0 +1,40 @@
+{
+	"name": "explorer-game",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "bunx vite",
+		"build": "bunx tsc -b && bunx vite build",
+		"check": "bunx biome check --fix",
+		"preview": "bunx vite preview",
+		"prepare": "bunx husky"
+	},
+	"dependencies": {
+		"react": "^19.2.0",
+		"react-dom": "^19.2.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.5",
+		"@commitlint/cli": "^20.1.0",
+		"@commitlint/config-conventional": "^20.0.0",
+		"@types/react": "^19.2.2",
+		"@types/react-dom": "^19.2.1",
+		"@vitejs/plugin-react-swc": "^4.1.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.4",
+		"typescript": "~5.9.3",
+		"vite": "^7.1.9",
+		"@types/bun": "latest"
+	},
+	"commitlint": {
+		"extends": [
+			"@commitlint/config-conventional"
+		]
+	},
+	"lint-staged": {
+		"*": [
+			"bunx biome check --fix"
+		]
+	}
+}
