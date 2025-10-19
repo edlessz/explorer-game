@@ -3,15 +3,14 @@ import type { Vector2 } from "../types";
 import TileMap from "./TileMap";
 
 class TileMapCollider extends Component {
-	private world: TileMap | null = null;
+	private tileMaps: TileMap[] = [];
 	private readonly edgeBoundary: number = 0.001;
 
 	public setup(): void {
-		this.world =
-			(this.entity.game
-				.getEntities()
-				.flatMap((e) => e.getComponents())
-				.find((c) => c instanceof TileMap) as TileMap) || null;
+		this.tileMaps = this.entity.game
+			.getEntitiesWithComponent(TileMap)
+			.map((e) => e.getComponent(TileMap))
+			.filter((tm): tm is TileMap => tm !== null);
 	}
 
 	public grounded(): boolean {
@@ -21,8 +20,22 @@ class TileMapCollider extends Component {
 		return isColliding;
 	}
 
+	private pairsCollidingWithTileMap(
+		pairs: Vector2[],
+		tileMap: TileMap,
+	): boolean {
+		const x = this.entity.transform.position.x;
+		const y = this.entity.transform.position.y;
+		const tileMapPos = tileMap.entity.transform.position;
+		return pairs.some(
+			({ x: dx, y: dy }) =>
+				(tileMap.getTile(dx + x - tileMapPos.x, dy + y - tileMapPos.y) ?? 0) >
+				0,
+		);
+	}
 	public colliding(): boolean {
-		if (!this.world) return false;
+		if (this.tileMaps.length === 0) return false;
+
 		const xs = Array.from(
 			{ length: this.entity.transform.scale.x + 1 },
 			(_, i) => i - this.entity.transform.scale.x / 2,
@@ -40,10 +53,8 @@ class TileMapCollider extends Component {
 
 		const pairs: Vector2[] = xs.flatMap((x) => ys.map((y) => ({ x, y })));
 
-		const x = this.entity.transform.position.x;
-		const y = this.entity.transform.position.y;
-		return pairs.some(
-			({ x: dx, y: dy }) => (this.world?.getTile(x + dx, y + dy) ?? 0) > 0,
+		return this.tileMaps.some((tileMap) =>
+			this.pairsCollidingWithTileMap(pairs, tileMap),
 		);
 	}
 }

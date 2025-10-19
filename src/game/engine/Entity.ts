@@ -8,6 +8,8 @@ class Entity {
 	public enabled: boolean = true;
 	public markedForDestruction: boolean = false;
 
+	public tag: string | null = null;
+
 	public transform: Transform = {
 		position: { x: 0, y: 0 },
 		rotation: 0,

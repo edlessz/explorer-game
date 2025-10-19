@@ -22,7 +22,10 @@ class TileMap extends Component {
 	}
 
 	public setTile(x: number, y: number, tileId: number): void {
-		const addr = this.encodeAddress(x, y);
+		const addr = this.encodeAddress(
+			x - this.entity.transform.position.x,
+			y - this.entity.transform.position.y,
+		);
 		this.tiles.set(addr, tileId);
 	}
 	public getTile(x: number, y: number): number {
@@ -44,7 +47,12 @@ class TileMap extends Component {
 
 			const { x, y } = this.decodeAddress(addr);
 			g.fillStyle = "#000";
-			g.fillRect(x, y, 1, 1);
+			g.fillRect(
+				x + this.entity.transform.position.x,
+				y + this.entity.transform.position.y,
+				1,
+				1,
+			);
 		}
 	}
 }

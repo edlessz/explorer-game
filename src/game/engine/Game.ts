@@ -1,12 +1,15 @@
 import type Component from "./Component";
+import type { ComponentConstructor } from "./Component";
 import Camera from "./components/Camera";
 import Entity from "./Entity";
+import FrameTimer from "./FrameTimer";
 import Input from "./Input";
 
 class Game {
 	private viewport: HTMLCanvasElement | null = null;
 	private context: CanvasRenderingContext2D | null = null;
 	private resizeObserver = new ResizeObserver(this.handleResize.bind(this));
+	private frameTimer = new FrameTimer();
 	public input = new Input();
 
 	private entities: Entity[] = [];
@@ -85,9 +88,7 @@ class Game {
 		}
 	}
 
-	private lastTime: number = 0;
 	public start(): void {
-		this.lastTime = performance.now();
 		requestAnimationFrame(this.gameLoop.bind(this));
 
 		for (const entity of this.entities) {
@@ -95,12 +96,8 @@ class Game {
 		}
 	}
 
-	private lastFps: number[] = [];
-	private gameLoop(now: number): void {
-		this.lastFps.push(1000 / (now - this.lastTime));
-		const deltaTime = (now - this.lastTime) / 1000;
-		this.lastTime = now;
-		if (this.lastFps.length > 50) this.lastFps.shift();
+	private gameLoop(): void {
+		const deltaTime = this.frameTimer.recordFrame();
 
 		if (!this.context || !this.viewport) {
 			requestAnimationFrame(this.gameLoop.bind(this));
@@ -145,9 +142,7 @@ class Game {
 		g.resetTransform();
 		g.fillStyle = "black";
 		g.font = "16px monospace";
-		const avgFps =
-			this.lastFps.reduce((a, b) => a + b, 0) / this.lastFps.length;
-		g.fillText(`FPS: ${avgFps.toFixed(2)}`, 10, 20);
+		g.fillText(`FPS: ${this.frameTimer.getFPS().toFixed(2)}`, 10, 20);
 	}
 
 	public addEntity(): Entity {
@@ -155,8 +150,13 @@ class Game {
 		this.entities.push(entity);
 		return entity;
 	}
-	public getEntities(): Entity[] {
-		return this.entities;
+	public getEntitiesWithComponent<T extends Component>(
+		ctor: ComponentConstructor<T>,
+	): Entity[] {
+		return this.entities.filter((e) => e.getComponent(ctor));
+	}
+	public getEntity(tag: string): Entity | null {
+		return this.entities.find((e) => e.tag === tag) || null;
 	}
 }
 
