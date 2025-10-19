@@ -1,3 +1,4 @@
+import Camera from "../components/Camera";
 import Entity from "./Entity";
 import Input from "./Input";
 
@@ -8,6 +9,21 @@ class Game {
 	private input = new Input();
 
 	private entities: Entity[] = [];
+	private camera: Entity | null = null;
+	private cameraComponent: Camera | null = null;
+
+	public setCamera(entity: Entity | null): void {
+		if (entity === null) {
+			this.camera = null;
+			this.cameraComponent = null;
+			return;
+		}
+
+		this.cameraComponent = entity.getComponent(Camera);
+		if (!this.cameraComponent)
+			throw new Error("Entity does not have a Camera component");
+		this.camera = entity;
+	}
 
 	private handleResize(entries: ResizeObserverEntry[]): void {
 		for (const entry of entries) {
@@ -103,13 +119,20 @@ class Game {
 		g.resetTransform();
 		g.clearRect(0, 0, this.viewport.width, this.viewport.height);
 
-		for (const entity of this.entities) {
-			if (!entity.enabled) continue;
+		if (this.camera && this.cameraComponent) {
+			for (const entity of this.entities) {
+				if (!entity.enabled) continue;
 
-			g.translate(this.viewport.width / 2, this.viewport.height / 2);
-			g.scale(32, 32);
+				g.translate(this.viewport.width / 2, this.viewport.height / 2);
+				g.scale(this.cameraComponent.ppu, this.cameraComponent.ppu);
+				g.rotate(-this.camera.transform.rotation);
+				g.translate(
+					-this.camera.transform.position.x,
+					-this.camera.transform.position.y,
+				);
 
-			entity.render(g);
+				entity.render(g);
+			}
 		}
 
 		g.resetTransform();

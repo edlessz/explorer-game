@@ -1,4 +1,5 @@
 import type Component from "./Component";
+import type { ComponentConstructor } from "./Component";
 import type Game from "./Game";
 import type { Transform } from "./types";
 
@@ -38,9 +39,17 @@ class Entity {
 	public getComponents(): ReadonlyArray<Component> {
 		return this.components;
 	}
-	public addComponent<T extends Component>(
-		ctor: new (entity: Entity, ...args: unknown[]) => T,
-	): T {
+	public getComponent<T extends Component>(
+		ctor: ComponentConstructor<T>,
+	): T | null {
+		for (const component of this.components) {
+			if (component instanceof ctor) {
+				return component as T;
+			}
+		}
+		return null;
+	}
+	public addComponent<T extends Component>(ctor: ComponentConstructor<T>): T {
 		const component = new ctor(this);
 		this.components.push(component);
 		return component;

@@ -27,4 +27,9 @@ class Component {
 	}
 }
 
+export type ComponentConstructor<T extends Component> = new (
+	entity: Entity,
+	...args: unknown[]
+) => T;
+
 export default Component;
