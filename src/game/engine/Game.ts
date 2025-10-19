@@ -1,4 +1,5 @@
-import Camera from "../components/Camera";
+import type Component from "./Component";
+import Camera from "./components/Camera";
 import Entity from "./Entity";
 import Input from "./Input";
 
@@ -6,7 +7,7 @@ class Game {
 	private viewport: HTMLCanvasElement | null = null;
 	private context: CanvasRenderingContext2D | null = null;
 	private resizeObserver = new ResizeObserver(this.handleResize.bind(this));
-	private input = new Input();
+	public input = new Input();
 
 	private entities: Entity[] = [];
 	private camera: Entity | null = null;
@@ -23,6 +24,17 @@ class Game {
 		if (!this.cameraComponent)
 			throw new Error("Entity does not have a Camera component");
 		this.camera = entity;
+	}
+
+	private dispatchToComponents<E extends MouseEvent | KeyboardEvent>(
+		event: E,
+		method: (component: Component, event: E) => void,
+	): void {
+		for (const entity of this.entities) {
+			for (const component of entity.getComponents()) {
+				if (component.enabled) method(component, event);
+			}
+		}
 	}
 
 	private handleResize(entries: ResizeObserverEntry[]): void {
@@ -53,26 +65,22 @@ class Game {
 			// Hook
 			this.resizeObserver.observe(canvas);
 			this.input.initialize(canvas);
+
+			// Automatically dispatch all input events to enabled components
 			this.input.onMouseDown = (event) => {
-				for (const entity of this.entities) {
-					for (const component of entity.getComponents()) {
-						if (component.enabled) component.onMouseDown(event);
-					}
-				}
+				this.dispatchToComponents(event, (c, e) => c.onMouseDown(e));
 			};
 			this.input.onMouseMove = (event) => {
-				for (const entity of this.entities) {
-					for (const component of entity.getComponents()) {
-						if (component.enabled) component.onMouseMove(event);
-					}
-				}
+				this.dispatchToComponents(event, (c, e) => c.onMouseMove(e));
 			};
 			this.input.onMouseUp = (event) => {
-				for (const entity of this.entities) {
-					for (const component of entity.getComponents()) {
-						if (component.enabled) component.onMouseUp(event);
-					}
-				}
+				this.dispatchToComponents(event, (c, e) => c.onMouseUp(e));
+			};
+			this.input.onKeyDown = (event) => {
+				this.dispatchToComponents(event, (c, e) => c.onKeyDown(e));
+			};
+			this.input.onKeyUp = (event) => {
+				this.dispatchToComponents(event, (c, e) => c.onKeyUp(e));
 			};
 		}
 	}
@@ -120,17 +128,16 @@ class Game {
 		g.clearRect(0, 0, this.viewport.width, this.viewport.height);
 
 		if (this.camera && this.cameraComponent) {
+			g.translate(this.viewport.width / 2, this.viewport.height / 2);
+			g.scale(this.cameraComponent.ppu, this.cameraComponent.ppu);
+			g.rotate(-this.camera.transform.rotation);
+			g.translate(
+				-this.camera.transform.position.x,
+				-this.camera.transform.position.y,
+			);
+
 			for (const entity of this.entities) {
 				if (!entity.enabled) continue;
-
-				g.translate(this.viewport.width / 2, this.viewport.height / 2);
-				g.scale(this.cameraComponent.ppu, this.cameraComponent.ppu);
-				g.rotate(-this.camera.transform.rotation);
-				g.translate(
-					-this.camera.transform.position.x,
-					-this.camera.transform.position.y,
-				);
-
 				entity.render(g);
 			}
 		}
@@ -147,6 +154,9 @@ class Game {
 		const entity = new Entity(this);
 		this.entities.push(entity);
 		return entity;
+	}
+	public getEntities(): Entity[] {
+		return this.entities;
 	}
 }
 

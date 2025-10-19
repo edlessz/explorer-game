@@ -25,6 +25,12 @@ class Component {
 	public onMouseUp(event: MouseEvent): void {
 		void event;
 	}
+	public onKeyDown(event: KeyboardEvent): void {
+		void event;
+	}
+	public onKeyUp(event: KeyboardEvent): void {
+		void event;
+	}
 }
 
 export type ComponentConstructor<T extends Component> = new (
