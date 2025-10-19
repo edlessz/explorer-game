@@ -22,21 +22,17 @@ class Physics extends Component {
 		if (this.tileMapColliderRef?.colliding()) {
 			const sign = Math.sign(this.velocity.x);
 			while (this.tileMapColliderRef.colliding() && sign !== 0) {
-				this.entity.transform.position.x -= sign * 0.01;
+				this.entity.transform.position.x -= sign * 0.001;
 				this.velocity.x = 0;
 			}
-			this.entity.transform.position.x =
-				Math.round(this.entity.transform.position.x * 2) / 2;
 		}
 		this.entity.transform.position.y += this.velocity.y * deltaTime;
 		if (this.tileMapColliderRef?.colliding()) {
 			const sign = Math.sign(this.velocity.y);
 			while (this.tileMapColliderRef.colliding() && sign !== 0) {
-				this.entity.transform.position.y -= sign * 0.01;
+				this.entity.transform.position.y -= sign * 0.001;
 				this.velocity.y = 0;
 			}
-			this.entity.transform.position.y =
-				Math.round(this.entity.transform.position.y * 2) / 2;
 		}
 	}
 }

@@ -26,11 +26,6 @@ camera.tag = "camera";
 const tileMap = game.addEntity();
 tileMap.addComponent(TileMap);
 
-const tileMap2 = game.addEntity();
-tileMap2.addComponent(TileMap);
-tileMap2.transform.position.x = 5.5;
-tileMap2.transform.position.y = 1;
-
 game.setCamera(camera);
 game.start();
 

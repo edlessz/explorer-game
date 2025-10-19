@@ -16,6 +16,11 @@ class Game {
 	private camera: Entity | null = null;
 	private cameraComponent: Camera | null = null;
 
+	private debugList: string[] = [];
+	public debug(s: string): void {
+		this.debugList.push(s);
+	}
+
 	public setCamera(entity: Entity | null): void {
 		if (entity === null) {
 			this.camera = null;
@@ -126,7 +131,7 @@ class Game {
 
 		if (this.camera && this.cameraComponent) {
 			g.translate(this.viewport.width / 2, this.viewport.height / 2);
-			g.scale(this.cameraComponent.ppu, this.cameraComponent.ppu);
+			g.scale(this.cameraComponent.ppuX, this.cameraComponent.ppuY);
 			g.rotate(-this.camera.transform.rotation);
 			g.translate(
 				-this.camera.transform.position.x,
@@ -143,6 +148,11 @@ class Game {
 		g.fillStyle = "black";
 		g.font = "16px monospace";
 		g.fillText(`FPS: ${this.frameTimer.getFPS().toFixed(2)}`, 10, 20);
+
+		for (let i = 0; i < this.debugList.length; i++) {
+			g.fillText(this.debugList[i], 10, 40 + i * 20);
+		}
+		this.debugList = [];
 	}
 
 	public addEntity(): Entity {

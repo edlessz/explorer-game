@@ -36,14 +36,25 @@ class TileMapCollider extends Component {
 	public colliding(): boolean {
 		if (this.tileMaps.length === 0) return false;
 
-		const xs = Array.from(
+		let xs = Array.from(
 			{ length: this.entity.transform.scale.x + 1 },
 			(_, i) => i - this.entity.transform.scale.x / 2,
 		);
-		const ys = Array.from(
+		let ys = Array.from(
 			{ length: this.entity.transform.scale.y + 1 },
 			(_, i) => i - this.entity.transform.scale.y / 2,
 		);
+
+		if (xs.length === 1)
+			xs = [
+				-this.entity.transform.scale.x / 2,
+				this.entity.transform.scale.x / 2,
+			];
+		if (ys.length === 1)
+			ys = [
+				-this.entity.transform.scale.y / 2,
+				this.entity.transform.scale.y / 2,
+			];
 
 		const edgeBoundary = 0.001;
 		xs[0] += edgeBoundary;

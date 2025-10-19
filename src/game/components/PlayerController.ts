@@ -12,8 +12,6 @@ class PlayerController extends Component {
 	public setup(): void {
 		this.physicsRef = this.entity.getComponent(Physics);
 		this.tileMapColliderRef = this.entity.getComponent(TileMapCollider);
-
-		this.entity.transform.scale = { x: 1, y: 2 };
 	}
 
 	public update(_deltaTime: number): void {
