@@ -1,4 +1,4 @@
-import type Entity from "./Entity";
+import Entity from "./Entity";
 import Input from "./Input";
 
 class Game {
@@ -39,31 +39,26 @@ class Game {
 			this.input.initialize(canvas);
 			this.input.onMouseDown = (event) => {
 				for (const entity of this.entities) {
-					entity.onMouseDown(event);
+					for (const component of entity.getComponents()) {
+						if (component.enabled) component.onMouseDown(event);
+					}
 				}
 			};
 			this.input.onMouseMove = (event) => {
 				for (const entity of this.entities) {
-					entity.onMouseMove(event);
+					for (const component of entity.getComponents()) {
+						if (component.enabled) component.onMouseMove(event);
+					}
 				}
 			};
 			this.input.onMouseUp = (event) => {
 				for (const entity of this.entities) {
-					entity.onMouseUp(event);
+					for (const component of entity.getComponents()) {
+						if (component.enabled) component.onMouseUp(event);
+					}
 				}
 			};
 		}
-	}
-
-	public getEntitiesByType<T extends Entity>(
-		ctor: new (...args: never[]) => T,
-	): T[] {
-		return this.entities.filter((e): e is T => e instanceof ctor);
-	}
-	public addEntity(entity: Entity): void {
-		entity.game = this;
-		entity.setup();
-		this.entities.push(entity);
 	}
 
 	private lastTime: number = 0;
@@ -72,7 +67,6 @@ class Game {
 		requestAnimationFrame(this.gameLoop.bind(this));
 
 		for (const entity of this.entities) {
-			entity.game = this;
 			entity.setup();
 		}
 	}
@@ -98,6 +92,7 @@ class Game {
 
 	private update(deltaTime: number): void {
 		for (const entity of this.entities) {
+			if (!entity.enabled) continue;
 			entity.update(deltaTime);
 		}
 	}
@@ -109,18 +104,11 @@ class Game {
 		g.clearRect(0, 0, this.viewport.width, this.viewport.height);
 
 		for (const entity of this.entities) {
-			const { position, rotation, scale } = entity.transform;
-			const cos = Math.cos(rotation);
-			const sin = Math.sin(rotation);
+			if (!entity.enabled) continue;
 
-			g.setTransform(
-				scale.x * cos,
-				scale.x * sin,
-				-scale.y * sin,
-				scale.y * cos,
-				position.x + this.viewport.width / 2,
-				position.y + this.viewport.height / 2,
-			);
+			g.translate(this.viewport.width / 2, this.viewport.height / 2);
+			g.scale(32, 32);
+
 			entity.render(g);
 		}
 
@@ -130,6 +118,12 @@ class Game {
 		const avgFps =
 			this.lastFps.reduce((a, b) => a + b, 0) / this.lastFps.length;
 		g.fillText(`FPS: ${avgFps.toFixed(2)}`, 10, 20);
+	}
+
+	public addEntity(): Entity {
+		const entity = new Entity(this);
+		this.entities.push(entity);
+		return entity;
 	}
 }
 

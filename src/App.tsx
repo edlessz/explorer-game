@@ -1,17 +1,19 @@
 import { useEffect, useRef } from "react";
 import "./App.css";
-import Game from "./game/Game";
+import ColorRenderer from "./game/components/ColorRenderer";
+import Game from "./game/engine/Game";
+
+const game = new Game();
+const test = game.addEntity();
+const colorRenderer = test.addComponent(ColorRenderer);
+colorRenderer.color = "#f00";
+game.start();
 
 const App: React.FC = () => {
-	const game = useRef<Game>(new Game());
 	const viewportRef = useRef<HTMLCanvasElement | null>(null);
 
 	useEffect(() => {
-		game.current.setViewport(viewportRef.current);
-		return () => {
-			game.current.setViewport(null);
-			game.current.start();
-		};
+		game.setViewport(viewportRef.current);
 	}, []);
 
 	return (
