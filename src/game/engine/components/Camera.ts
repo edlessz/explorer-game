@@ -6,7 +6,7 @@ class Camera extends Component {
 	public ppuY: number = 16; // pixels per unit
 
 	public getBounds(): [Vector2, Vector2] | null {
-		const viewport = this.entity.game.getViewport();
+		const viewport = this.game.getViewport();
 		if (!viewport) return null;
 
 		const { position, scale } = this.entity.transform;
@@ -28,7 +28,7 @@ class Camera extends Component {
 
 	public applyTransform(g: CanvasRenderingContext2D): void {
 		const { position, rotation } = this.entity.transform;
-		const viewport = this.entity.game.getViewport();
+		const viewport = this.game.getViewport();
 		if (!viewport) return;
 
 		g.scale(this.ppuX, this.ppuY);
@@ -48,7 +48,7 @@ class Camera extends Component {
 	}
 
 	public screenToWorld(screenX: number, screenY: number): Vector2 | null {
-		const viewport = this.entity.game.getViewport();
+		const viewport = this.game.getViewport();
 		if (!viewport) return null;
 
 		const { position, rotation } = this.entity.transform;

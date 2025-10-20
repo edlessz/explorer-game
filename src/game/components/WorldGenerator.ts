@@ -16,7 +16,7 @@ class WorldGenerator extends Component {
 	}
 
 	public update(_deltaTime: number): void {
-		const camera = this.entity.game.getCamera();
+		const camera = this.game.getCamera();
 		if (!camera) return;
 		const bounds = camera.getBounds();
 		if (!bounds) return;

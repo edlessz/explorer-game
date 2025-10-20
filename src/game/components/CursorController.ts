@@ -12,7 +12,7 @@ class CursorController extends Component {
 	public setup(): void {
 		this.colorRenderer = this.entity.getComponent(ColorRenderer);
 		this.editableTileMap =
-			this.entity.game
+			this.game
 				.getEntitiesWithComponent(TileMap)
 				.find((e) => e.tag === "editableTileMap")
 				?.getComponent(TileMap) ?? null;
@@ -21,7 +21,7 @@ class CursorController extends Component {
 	public update(_deltaTime: number): void {
 		if (this.colorRenderer) this.colorRenderer.enabled = false;
 		if (!this.mouseScreenPos) return;
-		const camera = this.entity.game.getCamera();
+		const camera = this.game.getCamera();
 		if (!camera) return;
 
 		const worldPos = camera.screenToWorld(
@@ -41,7 +41,7 @@ class CursorController extends Component {
 			y: event.clientY,
 		};
 
-		const input = this.entity.game.input;
+		const input = this.game.input;
 		if (input.isMouseButtonPressed(0)) {
 			this.place(3);
 		}
@@ -51,7 +51,7 @@ class CursorController extends Component {
 	}
 
 	public onMouseUp(_event: MouseEvent): void {
-		const input = this.entity.game.input;
+		const input = this.game.input;
 		if (input.isMouseButtonPressed(0)) {
 			this.place(3);
 		}

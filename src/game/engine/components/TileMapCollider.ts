@@ -7,7 +7,7 @@ class TileMapCollider extends Component {
 	private readonly edgeBoundary: number = 0.001;
 
 	public setup(): void {
-		this.tileMaps = this.entity.game
+		this.tileMaps = this.game
 			.getEntitiesWithComponent(TileMap)
 			.map((e) => e.getComponent(TileMap))
 			.filter((tm): tm is TileMap => tm !== null);

@@ -22,7 +22,7 @@ class PlayerController extends Component {
 	public update(_deltaTime: number): void {
 		if (!this.physicsRef) return;
 
-		const input = this.entity.game.input;
+		const input = this.game.input;
 		const direction =
 			(input.isKeyPressed("ArrowRight") ? 1 : 0) -
 			(input.isKeyPressed("ArrowLeft") ? 1 : 0);
@@ -31,6 +31,10 @@ class PlayerController extends Component {
 		if (input.isKeyPressed("ArrowUp") && this.tileMapColliderRef?.grounded()) {
 			this.physicsRef.velocity.y = -this.jumpHeight;
 		}
+
+		this.game.debug(
+			`X: ${this.entity.transform.position.x.toFixed(2)} Y: ${this.entity.transform.position.y.toFixed(2)}`,
+		);
 	}
 }
 

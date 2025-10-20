@@ -1,11 +1,14 @@
 import type Entity from "./Entity";
+import type Game from "./Game";
 
 class Component {
 	public enabled: boolean = true;
 	public readonly entity: Entity;
+	public readonly game: Game;
 
 	constructor(entity: Entity) {
 		this.entity = entity;
+		this.game = entity.game;
 	}
 
 	public setup(): void {}

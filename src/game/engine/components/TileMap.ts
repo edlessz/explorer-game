@@ -116,7 +116,7 @@ class TileMap extends Component {
 	}
 
 	public render(g: CanvasRenderingContext2D): void {
-		const camera = this.entity.game.getCamera();
+		const camera = this.game.getCamera();
 		const bounds = camera?.getBounds();
 
 		if (!camera || !bounds) return;

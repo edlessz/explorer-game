@@ -10,7 +10,7 @@ class CameraController extends Component {
 	private camera: Camera | null = null;
 
 	public setup(): void {
-		this.followTarget = this.entity.game.getEntity("player");
+		this.followTarget = this.game.getEntity("player");
 		this.camera = this.entity.getComponent(Camera);
 	}
 
@@ -30,7 +30,7 @@ class CameraController extends Component {
 		this.entity.transform.position.y +=
 			direction.y * this.cameraSpeed * deltaTime;
 
-		const input = this.entity.game.input;
+		const input = this.game.input;
 		if (this.camera) {
 			if (input.isKeyPressed("=")) {
 				this.camera.ppuX *= 1.1;

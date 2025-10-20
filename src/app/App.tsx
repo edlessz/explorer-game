@@ -1,15 +1,15 @@
 import { useEffect, useRef } from "react";
 import "./App.css";
-import CameraController from "./game/components/CameraController";
-import CursorController from "./game/components/CursorController";
-import PlayerController from "./game/components/PlayerController";
-import WorldGenerator from "./game/components/WorldGenerator";
-import Camera from "./game/engine/components/Camera";
-import ColorRenderer from "./game/engine/components/ColorRenderer";
-import Physics from "./game/engine/components/Physics";
-import TileMap from "./game/engine/components/TileMap";
-import TileMapCollider from "./game/engine/components/TileMapCollider";
-import Game from "./game/engine/Game";
+import CameraController from "../game/components/CameraController";
+import CursorController from "../game/components/CursorController";
+import PlayerController from "../game/components/PlayerController";
+import WorldGenerator from "../game/components/WorldGenerator";
+import Camera from "../game/engine/components/Camera";
+import ColorRenderer from "../game/engine/components/ColorRenderer";
+import Physics from "../game/engine/components/Physics";
+import TileMap from "../game/engine/components/TileMap";
+import TileMapCollider from "../game/engine/components/TileMapCollider";
+import Game from "../game/engine/Game";
 
 const game = new Game();
 
