@@ -1,9 +1,8 @@
 import Component from "../Component";
 
-type Address = `${number},${number}`;
-
 class TileMap extends Component {
-	private tiles: Map<Address, number> = new Map();
+	private tiles: Map<number, number> = new Map();
+	public lightingEnabled = true;
 
 	public tileSet: Map<number, HTMLImageElement> = new Map();
 
@@ -19,12 +18,17 @@ class TileMap extends Component {
 		return this.tiles.get(addr) ?? 0;
 	}
 
-	public decodeAddress(addr: Address): { x: number; y: number } {
-		const [x, y] = addr.split(",").map(Number);
+	public decodeAddress(addr: number): { x: number; y: number } {
+		// Extract x from upper 16 bits (with sign extension)
+		const x = addr >> 16;
+		// Extract y from lower 16 bits (with sign extension)
+		const y = (addr << 16) >> 16;
 		return { x, y };
 	}
-	public encodeAddress(x: number, y: number): Address {
-		return `${Math.floor(x)},${Math.floor(y)}`;
+	public encodeAddress(x: number, y: number): number {
+		// Pack x into upper 16 bits, y into lower 16 bits
+		// Supports coordinates from -32768 to 32767
+		return (Math.floor(x) << 16) | (Math.floor(y) & 0xffff);
 	}
 
 	public render(g: CanvasRenderingContext2D): void {
@@ -39,36 +43,49 @@ class TileMap extends Component {
 				const tileId = this.getTile(x, y);
 				const tileImage = this.tileSet.get(tileId);
 
-				if (tileId === 0) continue;
-				if (!tileImage) {
-					g.fillStyle = "#000";
+				if (tileId > 0) {
+					if (!tileImage) {
+						g.fillStyle = "#000";
+						g.fillRect(
+							x + this.entity.transform.position.x,
+							y + this.entity.transform.position.y,
+							1,
+							1,
+						);
+						g.fillStyle = "#f0f";
+						g.fillRect(
+							x + this.entity.transform.position.x,
+							y + this.entity.transform.position.y,
+							0.5,
+							0.5,
+						);
+						g.fillRect(
+							x + this.entity.transform.position.x + 0.5,
+							y + this.entity.transform.position.y + 0.5,
+							0.5,
+							0.5,
+						);
+					} else {
+						g.drawImage(
+							tileImage,
+							x + this.entity.transform.position.x,
+							y + this.entity.transform.position.y,
+							1,
+							1,
+						);
+					}
+				}
+				if (this.lightingEnabled) {
+					g.fillStyle = `rgba(0, 0, 0, ${0.5})`;
+					// g.fillStyle = `#000`;
+					// g.globalAlpha = 0.5;
 					g.fillRect(
 						x + this.entity.transform.position.x,
 						y + this.entity.transform.position.y,
 						1,
 						1,
 					);
-					g.fillStyle = "#f0f";
-					g.fillRect(
-						x + this.entity.transform.position.x,
-						y + this.entity.transform.position.y,
-						0.5,
-						0.5,
-					);
-					g.fillRect(
-						x + this.entity.transform.position.x + 0.5,
-						y + this.entity.transform.position.y + 0.5,
-						0.5,
-						0.5,
-					);
-				} else {
-					g.drawImage(
-						tileImage,
-						x + this.entity.transform.position.x,
-						y + this.entity.transform.position.y,
-						1,
-						1,
-					);
+					// g.globalAlpha = 1.0;
 				}
 			}
 		}

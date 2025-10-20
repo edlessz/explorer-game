@@ -3,8 +3,6 @@ import Component from "../engine/Component";
 import TileMap from "../engine/components/TileMap";
 import type { Vector2 } from "../engine/types";
 
-type Address = `${number},${number}`;
-
 class WorldGenerator extends Component {
 	private seed: number = 0.5;
 	private noise2D = createNoise2D(() => this.seed);
@@ -36,8 +34,8 @@ class WorldGenerator extends Component {
 		}
 	}
 
-	private generatedChunks: Set<Address> = new Set();
-	private caveMap: Map<Address, boolean> = new Map();
+	private generatedChunks: Set<number> = new Set();
+	private caveMap: Map<number, boolean> = new Map();
 
 	private generateChunk(cx: number, cy: number): void {
 		if (!this.tileMapRef) return;
@@ -117,8 +115,8 @@ class WorldGenerator extends Component {
 		return combined < 0.42;
 	}
 
-	private smoothCaves(cx: number, cy: number): Map<Address, boolean> {
-		const smoothed = new Map<Address, boolean>();
+	private smoothCaves(cx: number, cy: number): Map<number, boolean> {
+		const smoothed = new Map<number, boolean>();
 
 		// Apply cellular automata rules for more organic caves
 		for (let dx = 0; dx < this.chunkSize.x; dx++) {
@@ -155,8 +153,10 @@ class WorldGenerator extends Component {
 		return (noiseValue + 1) / 2; // Normalize to [0, 1]
 	}
 
-	private encodeAddress(x: number, y: number): Address {
-		return `${Math.floor(x)},${Math.floor(y)}`;
+	private encodeAddress(x: number, y: number): number {
+		// Pack x into upper 16 bits, y into lower 16 bits
+		// Supports coordinates from -32768 to 32767
+		return (Math.floor(x) << 16) | (Math.floor(y) & 0xffff);
 	}
 }
 
