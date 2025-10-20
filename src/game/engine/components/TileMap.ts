@@ -5,22 +5,6 @@ type Address = `${number},${number}`;
 class TileMap extends Component {
 	private tiles: Map<Address, number> = new Map();
 
-	public setup() {
-		this.tiles = new Map([
-			...new Array(20).fill(0).map((_, i) => {
-				const x = i % 10;
-				const y = Math.floor(i / 10) + 4;
-				return [this.encodeAddress(x, y), 1] as [Address, number];
-			}),
-			["0,2", 1],
-			["0,3", 1],
-			["9,2", 1],
-			["9,3", 1],
-			["8,1", 1],
-			["7,2", 1],
-		]);
-	}
-
 	public setTile(x: number, y: number, tileId: number): void {
 		const addr = this.encodeAddress(
 			x - this.entity.transform.position.x,
@@ -42,17 +26,25 @@ class TileMap extends Component {
 	}
 
 	public render(g: CanvasRenderingContext2D): void {
-		for (const [addr, tileId] of this.tiles) {
-			if (tileId === 0) continue;
+		const camera = this.entity.game.getCamera();
+		const bounds = camera?.getBounds();
 
-			const { x, y } = this.decodeAddress(addr);
-			g.fillStyle = "#000";
-			g.fillRect(
-				x + this.entity.transform.position.x,
-				y + this.entity.transform.position.y,
-				1,
-				1,
-			);
+		if (!bounds) return;
+		const [min, max] = bounds;
+
+		for (let x = Math.floor(min.x); x <= max.x; x++) {
+			for (let y = Math.floor(min.y); y <= max.y; y++) {
+				const tileId = this.getTile(x, y);
+				if (tileId !== 0) {
+					g.fillStyle = "#000";
+					g.fillRect(
+						x + this.entity.transform.position.x,
+						y + this.entity.transform.position.y,
+						1,
+						1,
+					);
+				}
+			}
 		}
 	}
 }

@@ -33,6 +33,9 @@ class Game {
 			throw new Error("Entity does not have a Camera component");
 		this.camera = entity;
 	}
+	public getCamera(): Camera | null {
+		return this.cameraComponent;
+	}
 
 	private dispatchToComponents<E extends MouseEvent | KeyboardEvent>(
 		event: E,
@@ -91,6 +94,9 @@ class Game {
 				this.dispatchToComponents(event, (c, e) => c.onKeyUp(e));
 			};
 		}
+	}
+	public getViewport(): HTMLCanvasElement | null {
+		return this.viewport;
 	}
 
 	public start(): void {

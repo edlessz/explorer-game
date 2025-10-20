@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import "./App.css";
 import CameraController from "./game/components/CameraController";
 import PlayerController from "./game/components/PlayerController";
+import WorldGenerator from "./game/components/WorldGenerator";
 import Camera from "./game/engine/components/Camera";
 import ColorRenderer from "./game/engine/components/ColorRenderer";
 import Physics from "./game/engine/components/Physics";
@@ -25,6 +26,7 @@ camera.tag = "camera";
 
 const tileMap = game.addEntity();
 tileMap.addComponent(TileMap);
+tileMap.addComponent(WorldGenerator);
 
 game.setCamera(camera);
 game.start();
