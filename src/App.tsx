@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import "./App.css";
 import CameraController from "./game/components/CameraController";
+import CursorController from "./game/components/CursorController";
 import PlayerController from "./game/components/PlayerController";
 import WorldGenerator from "./game/components/WorldGenerator";
 import Camera from "./game/engine/components/Camera";
@@ -32,6 +33,11 @@ tileMapComponent.tileSet = new Map([
 	[2, Object.assign(new Image(), { src: "grass.png" })],
 	[3, Object.assign(new Image(), { src: "stone.png" })],
 ]);
+tileMap.tag = "editableTileMap";
+
+const cursor = game.addEntity();
+cursor.addComponent(CursorController);
+cursor.addComponent(ColorRenderer).color = "rgba(255, 255, 255, 0.5)";
 
 game.setCamera(camera);
 game.start();

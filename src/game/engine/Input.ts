@@ -5,6 +5,7 @@ type Scope = "window" | "viewport";
 class Input {
 	private viewport: HTMLCanvasElement | null = null;
 	private keyMap: Record<string, boolean> = {};
+	private mouseMap: Record<number, boolean> = {};
 
 	private keyMapOnKeyDown = (e: KeyboardEvent) => {
 		this.keyMap[e.key] = true;
@@ -12,9 +13,19 @@ class Input {
 	private keyMapOnKeyUp = (e: KeyboardEvent) => {
 		this.keyMap[e.key] = false;
 	};
+	private mouseMapOnMouseDown = (e: MouseEvent) => {
+		this.mouseMap[e.button] = true;
+	};
+	private mouseMapOnMouseUp = (e: MouseEvent) => {
+		this.mouseMap[e.button] = false;
+	};
+	private contextMenuPreventer = (e: MouseEvent) => e.preventDefault();
 
 	public isKeyPressed(key: string): boolean {
 		return !!this.keyMap[key];
+	}
+	public isMouseButtonPressed(button: number): boolean {
+		return !!this.mouseMap[button];
 	}
 
 	public onMouseMove: ((event: MouseEvent) => void) | null = null;
@@ -60,6 +71,9 @@ class Input {
 		}
 		window.addEventListener("keydown", this.keyMapOnKeyDown);
 		window.addEventListener("keyup", this.keyMapOnKeyUp);
+		this.viewport.addEventListener("mousedown", this.mouseMapOnMouseDown);
+		this.viewport.addEventListener("mouseup", this.mouseMapOnMouseUp);
+		this.viewport.addEventListener("contextmenu", this.contextMenuPreventer);
 	}
 
 	public cleanup(): void {
@@ -71,6 +85,9 @@ class Input {
 		}
 		window.removeEventListener("keydown", this.keyMapOnKeyDown);
 		window.removeEventListener("keyup", this.keyMapOnKeyUp);
+		this.viewport.removeEventListener("mousedown", this.mouseMapOnMouseDown);
+		this.viewport.removeEventListener("mouseup", this.mouseMapOnMouseUp);
+		this.viewport.removeEventListener("contextmenu", this.contextMenuPreventer);
 
 		this.viewport = null;
 	}
