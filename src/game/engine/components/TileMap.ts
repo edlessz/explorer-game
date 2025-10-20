@@ -5,6 +5,8 @@ type Address = `${number},${number}`;
 class TileMap extends Component {
 	private tiles: Map<Address, number> = new Map();
 
+	public tileSet: Map<number, HTMLImageElement> = new Map();
+
 	public setTile(x: number, y: number, tileId: number): void {
 		const addr = this.encodeAddress(
 			x - this.entity.transform.position.x,
@@ -29,13 +31,16 @@ class TileMap extends Component {
 		const camera = this.entity.game.getCamera();
 		const bounds = camera?.getBounds();
 
-		if (!bounds) return;
+		if (!camera || !bounds) return;
 		const [min, max] = bounds;
 
 		for (let x = Math.floor(min.x); x <= max.x; x++) {
 			for (let y = Math.floor(min.y); y <= max.y; y++) {
 				const tileId = this.getTile(x, y);
-				if (tileId !== 0) {
+				const tileImage = this.tileSet.get(tileId);
+
+				if (tileId === 0) continue;
+				if (!tileImage) {
 					g.fillStyle = "#000";
 					g.fillRect(
 						x + this.entity.transform.position.x,
@@ -43,6 +48,25 @@ class TileMap extends Component {
 						1,
 						1,
 					);
+					g.fillStyle = "#f0f";
+					g.fillRect(
+						x + this.entity.transform.position.x,
+						y + this.entity.transform.position.y,
+						0.5,
+						0.5,
+					);
+					g.fillRect(
+						x + this.entity.transform.position.x + 0.5,
+						y + this.entity.transform.position.y + 0.5,
+						0.5,
+						0.5,
+					);
+				} else {
+					const pos = camera?.roundPositionToPixel(
+						x + this.entity.transform.position.x,
+						y + this.entity.transform.position.y,
+					);
+					g.drawImage(tileImage, pos.x, pos.y, 1, 1);
 				}
 			}
 		}

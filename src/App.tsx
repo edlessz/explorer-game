@@ -25,8 +25,13 @@ camera.addComponent(CameraController);
 camera.tag = "camera";
 
 const tileMap = game.addEntity();
-tileMap.addComponent(TileMap);
+const tileMapComponent = tileMap.addComponent(TileMap);
 tileMap.addComponent(WorldGenerator);
+tileMapComponent.tileSet = new Map([
+	[1, Object.assign(new Image(), { src: "dirt.png" })],
+	[2, Object.assign(new Image(), { src: "grass.png" })],
+	[3, Object.assign(new Image(), { src: "stone.png" })],
+]);
 
 game.setCamera(camera);
 game.start();

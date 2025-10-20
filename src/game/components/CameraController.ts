@@ -31,13 +31,21 @@ class CameraController extends Component {
 			direction.y * this.cameraSpeed * deltaTime;
 
 		const input = this.entity.game.input;
-		if (this.camera && input.isKeyPressed("-")) {
-			this.camera.ppuX *= 1.1;
-			this.camera.ppuY *= 1.1;
-		}
-		if (this.camera && input.isKeyPressed("=")) {
-			this.camera.ppuX /= 1.1;
-			this.camera.ppuY /= 1.1;
+		if (this.camera) {
+			if (input.isKeyPressed("-")) {
+				this.camera.ppuX *= 1.1;
+				this.camera.ppuY *= 1.1;
+
+				this.camera.ppuX = Math.round(this.camera.ppuX);
+				this.camera.ppuY = Math.round(this.camera.ppuY);
+			}
+			if (input.isKeyPressed("=")) {
+				this.camera.ppuX /= 1.1;
+				this.camera.ppuY /= 1.1;
+
+				this.camera.ppuX = Math.round(this.camera.ppuX);
+				this.camera.ppuY = Math.round(this.camera.ppuY);
+			}
 		}
 	}
 }

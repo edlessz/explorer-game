@@ -25,6 +25,13 @@ class Camera extends Component {
 
 		return [min, max];
 	}
+
+	public roundPositionToPixel(x: number, y: number): Vector2 {
+		return {
+			x: Math.round(x * this.ppuX) / this.ppuX,
+			y: Math.round(y * this.ppuY) / this.ppuY,
+		};
+	}
 }
 
 export default Camera;

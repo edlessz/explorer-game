@@ -53,9 +53,15 @@ class WorldGenerator extends Component {
 
 				const landstripHeight = Math.floor(noise * 10);
 
-				if (y > landstripHeight) {
+				const stoneHeight =
+					landstripHeight + this.normalizedNoise(x / 2, this.seed) * 4 + 5;
+
+				if (y > stoneHeight) {
+					this.tileMapRef.setTile(x, y, 3);
+				} else if (y > landstripHeight) {
 					this.tileMapRef.setTile(x, y, 1);
 				}
+				this.tileMapRef.setTile(x, landstripHeight, 2);
 			}
 		}
 
