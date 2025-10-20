@@ -2,6 +2,7 @@ import { createNoise2D } from "simplex-noise";
 import Component from "../engine/Component";
 import TileMap from "../engine/components/TileMap";
 import type { Vector2 } from "../engine/types";
+import { type Address, encodeAddress } from "../engine/utils";
 
 class WorldGenerator extends Component {
 	private seed: number = 0.5;
@@ -34,12 +35,12 @@ class WorldGenerator extends Component {
 		}
 	}
 
-	private generatedChunks: Set<number> = new Set();
-	private caveMap: Map<number, boolean> = new Map();
+	private generatedChunks: Set<Address> = new Set();
+	private caveMap: Map<Address, boolean> = new Map();
 
 	private generateChunk(cx: number, cy: number): void {
 		if (!this.tileMapRef) return;
-		const addr = this.encodeAddress(cx, cy);
+		const addr = encodeAddress(cx, cy);
 		if (this.generatedChunks.has(addr)) return;
 
 		// First pass: generate terrain and initial cave noise
@@ -67,7 +68,7 @@ class WorldGenerator extends Component {
 
 				// Enhanced cave generation with multiple frequencies
 				const caveValue = this.getCaveValue(x, y);
-				this.caveMap.set(this.encodeAddress(x, y), caveValue);
+				this.caveMap.set(encodeAddress(x, y), caveValue);
 			}
 		}
 
@@ -79,7 +80,7 @@ class WorldGenerator extends Component {
 			const x = cx + dx;
 			for (let dy = 0; dy < this.chunkSize.y; dy++) {
 				const y = cy + dy;
-				const addr = this.encodeAddress(x, y);
+				const addr = encodeAddress(x, y);
 
 				if (smoothedCaves.get(addr)) {
 					this.tileMapRef.setTile(x, y, 0);
@@ -129,7 +130,7 @@ class WorldGenerator extends Component {
 				for (let ox = -1; ox <= 1; ox++) {
 					for (let oy = -1; oy <= 1; oy++) {
 						if (ox === 0 && oy === 0) continue;
-						const neighborAddr = this.encodeAddress(x + ox, y + oy);
+						const neighborAddr = encodeAddress(x + ox, y + oy);
 						if (this.caveMap.get(neighborAddr)) {
 							caveNeighbors++;
 						}
@@ -139,7 +140,7 @@ class WorldGenerator extends Component {
 				// Smoothing rules:
 				// - If 5+ neighbors are caves, become a cave
 				// - If 4- neighbors are caves, become solid
-				const addr = this.encodeAddress(x, y);
+				const addr = encodeAddress(x, y);
 				const isCave = caveNeighbors >= 5;
 				smoothed.set(addr, isCave);
 			}
@@ -151,12 +152,6 @@ class WorldGenerator extends Component {
 	private normalizedNoise(x: number, y: number): number {
 		const noiseValue = this.noise2D(x, y);
 		return (noiseValue + 1) / 2; // Normalize to [0, 1]
-	}
-
-	private encodeAddress(x: number, y: number): number {
-		// Pack x into upper 16 bits, y into lower 16 bits
-		// Supports coordinates from -32768 to 32767
-		return (Math.floor(x) << 16) | (Math.floor(y) & 0xffff);
 	}
 }
 

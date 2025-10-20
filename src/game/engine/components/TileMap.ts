@@ -1,34 +1,118 @@
 import Component from "../Component";
+import { type Address, encodeAddress } from "../utils";
+
+interface ChunkCache {
+	canvas: HTMLCanvasElement;
+	ctx: CanvasRenderingContext2D;
+	isDirty: boolean;
+}
 
 class TileMap extends Component {
-	private tiles: Map<number, number> = new Map();
-	public lightingEnabled = true;
-
+	private tiles: Map<Address, number> = new Map();
 	public tileSet: Map<number, HTMLImageElement> = new Map();
 
+	public lightingEnabled = true;
+	private lighting: Map<Address, number> = new Map();
+
+	// Chunk cache settings
+	private readonly chunkSize = 32; // Tiles per chunk
+	private chunkCache: Map<Address, ChunkCache> = new Map();
+	private cachePPU: { x: number; y: number } = { x: 32, y: 32 }; // PPU used for cached chunks
+
+	public getTile(x: number, y: number): number {
+		const addr = encodeAddress(x, y);
+		return this.tiles.get(addr) ?? 0;
+	}
 	public setTile(x: number, y: number, tileId: number): void {
-		const addr = this.encodeAddress(
+		const addr = encodeAddress(
 			x - this.entity.transform.position.x,
 			y - this.entity.transform.position.y,
 		);
 		this.tiles.set(addr, tileId);
-	}
-	public getTile(x: number, y: number): number {
-		const addr = this.encodeAddress(x, y);
-		return this.tiles.get(addr) ?? 0;
+
+		// Mark the chunk containing this tile as dirty
+		const chunkX = Math.floor(x / this.chunkSize) * this.chunkSize;
+		const chunkY = Math.floor(y / this.chunkSize) * this.chunkSize;
+		const chunkAddr = encodeAddress(chunkX, chunkY);
+		const chunk = this.chunkCache.get(chunkAddr);
+		if (chunk) chunk.isDirty = true;
 	}
 
-	public decodeAddress(addr: number): { x: number; y: number } {
-		// Extract x from upper 16 bits (with sign extension)
-		const x = addr >> 16;
-		// Extract y from lower 16 bits (with sign extension)
-		const y = (addr << 16) >> 16;
-		return { x, y };
+	public getLighting(x: number, y: number): number {
+		const addr = encodeAddress(x, y);
+		return this.lighting.get(addr) ?? 0;
 	}
-	public encodeAddress(x: number, y: number): number {
-		// Pack x into upper 16 bits, y into lower 16 bits
-		// Supports coordinates from -32768 to 32767
-		return (Math.floor(x) << 16) | (Math.floor(y) & 0xffff);
+
+	private getOrCreateChunkCache(chunkX: number, chunkY: number): ChunkCache {
+		const chunkAddr = encodeAddress(chunkX, chunkY);
+		let chunk = this.chunkCache.get(chunkAddr);
+
+		if (!chunk) {
+			const canvas = document.createElement("canvas");
+
+			// Size in pixels based on cachePPU (fixed at creation time)
+			canvas.width = this.chunkSize * this.cachePPU.x;
+			canvas.height = this.chunkSize * this.cachePPU.y;
+
+			const ctx = canvas.getContext("2d", {
+				alpha: true,
+				willReadFrequently: false,
+			});
+			if (!ctx) throw new Error("Failed to create chunk canvas context");
+
+			chunk = { canvas, ctx, isDirty: true };
+			this.chunkCache.set(chunkAddr, chunk);
+		}
+
+		return chunk;
+	}
+	private renderChunkToCache(chunkX: number, chunkY: number): void {
+		const chunk = this.getOrCreateChunkCache(chunkX, chunkY);
+		if (!chunk.isDirty) return;
+
+		const ctx = chunk.ctx;
+		const ppuX = this.cachePPU.x;
+		const ppuY = this.cachePPU.y;
+
+		// Clear the chunk canvas
+		ctx.clearRect(0, 0, chunk.canvas.width, chunk.canvas.height);
+
+		// Render all tiles in this chunk
+		for (let dx = 0; dx < this.chunkSize; dx++) {
+			for (let dy = 0; dy < this.chunkSize; dy++) {
+				const x = chunkX + dx;
+				const y = chunkY + dy;
+				const tileId = this.getTile(x, y);
+				const tileImage = this.tileSet.get(tileId);
+
+				if (tileId > 0) {
+					if (!tileImage) {
+						// Fallback magenta checkerboard
+						ctx.fillStyle = "#000";
+						ctx.fillRect(dx * ppuX, dy * ppuY, ppuX, ppuY);
+						ctx.fillStyle = "#f0f";
+						ctx.fillRect(dx * ppuX, dy * ppuY, ppuX / 2, ppuY / 2);
+						ctx.fillRect(
+							dx * ppuX + ppuX / 2,
+							dy * ppuY + ppuY / 2,
+							ppuX / 2,
+							ppuY / 2,
+						);
+					} else {
+						ctx.drawImage(tileImage, dx * ppuX, dy * ppuY, ppuX, ppuY);
+					}
+				}
+
+				// Apply lighting overlay
+				if (this.lightingEnabled) {
+					// const lightValue = this.getLighting(x, y);
+					ctx.fillStyle = `rgba(0, 0, 0, ${0})`;
+					ctx.fillRect(dx * ppuX, dy * ppuY, ppuX, ppuY);
+				}
+			}
+		}
+
+		chunk.isDirty = false;
 	}
 
 	public render(g: CanvasRenderingContext2D): void {
@@ -38,55 +122,45 @@ class TileMap extends Component {
 		if (!camera || !bounds) return;
 		const [min, max] = bounds;
 
-		for (let x = Math.floor(min.x); x <= max.x; x++) {
-			for (let y = Math.floor(min.y); y <= max.y; y++) {
-				const tileId = this.getTile(x, y);
-				const tileImage = this.tileSet.get(tileId);
+		// Disable image smoothing for crisp pixel art
+		g.imageSmoothingEnabled = false;
 
-				if (tileId > 0) {
-					if (!tileImage) {
-						g.fillStyle = "#000";
-						g.fillRect(
-							x + this.entity.transform.position.x,
-							y + this.entity.transform.position.y,
-							1,
-							1,
-						);
-						g.fillStyle = "#f0f";
-						g.fillRect(
-							x + this.entity.transform.position.x,
-							y + this.entity.transform.position.y,
-							0.5,
-							0.5,
-						);
-						g.fillRect(
-							x + this.entity.transform.position.x + 0.5,
-							y + this.entity.transform.position.y + 0.5,
-							0.5,
-							0.5,
-						);
-					} else {
-						g.drawImage(
-							tileImage,
-							x + this.entity.transform.position.x,
-							y + this.entity.transform.position.y,
-							1,
-							1,
-						);
-					}
-				}
-				if (this.lightingEnabled) {
-					g.fillStyle = `rgba(0, 0, 0, ${0.5})`;
-					// g.fillStyle = `#000`;
-					// g.globalAlpha = 0.5;
-					g.fillRect(
-						x + this.entity.transform.position.x,
-						y + this.entity.transform.position.y,
-						1,
-						1,
-					);
-					// g.globalAlpha = 1.0;
-				}
+		// Calculate which chunks are visible
+		const minChunkX = Math.floor(min.x / this.chunkSize) * this.chunkSize;
+		const maxChunkX = Math.floor(max.x / this.chunkSize) * this.chunkSize;
+		const minChunkY = Math.floor(min.y / this.chunkSize) * this.chunkSize;
+		const maxChunkY = Math.floor(max.y / this.chunkSize) * this.chunkSize;
+
+		// Render each visible chunk
+		for (
+			let chunkX = minChunkX;
+			chunkX <= maxChunkX;
+			chunkX += this.chunkSize
+		) {
+			for (
+				let chunkY = minChunkY;
+				chunkY <= maxChunkY;
+				chunkY += this.chunkSize
+			) {
+				// Update chunk cache if dirty
+				this.renderChunkToCache(chunkX, chunkY);
+
+				// Get the cached chunk
+				const chunk = this.getOrCreateChunkCache(chunkX, chunkY);
+
+				// Draw the entire chunk with a single drawImage call
+				// The cached chunk is always rendered at cachePPU resolution,
+				// but we draw it scaled to match the current world coordinates
+				const worldX = chunkX + this.entity.transform.position.x;
+				const worldY = chunkY + this.entity.transform.position.y;
+
+				g.drawImage(
+					chunk.canvas,
+					worldX,
+					worldY,
+					this.chunkSize,
+					this.chunkSize,
+				);
 			}
 		}
 	}
