@@ -3,7 +3,7 @@ import type { Vector2 } from "../types";
 import TileMapCollider from "./TileMapCollider";
 
 class Physics extends Component {
-	public static gravity: number = 9.81;
+	public static gravity: number = 20;
 
 	public velocity: Vector2 = { x: 0, y: 0 };
 	public acceleration: Vector2 = { x: 0, y: Physics.gravity };

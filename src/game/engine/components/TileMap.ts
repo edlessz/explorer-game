@@ -62,11 +62,13 @@ class TileMap extends Component {
 						0.5,
 					);
 				} else {
-					const pos = camera?.roundPositionToPixel(
+					g.drawImage(
+						tileImage,
 						x + this.entity.transform.position.x,
 						y + this.entity.transform.position.y,
+						1,
+						1,
 					);
-					g.drawImage(tileImage, pos.x, pos.y, 1, 1);
 				}
 			}
 		}

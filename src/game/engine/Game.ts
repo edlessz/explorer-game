@@ -136,14 +136,7 @@ class Game {
 		g.clearRect(0, 0, this.viewport.width, this.viewport.height);
 
 		if (this.camera && this.cameraComponent) {
-			g.translate(this.viewport.width / 2, this.viewport.height / 2);
-			g.scale(this.cameraComponent.ppuX, this.cameraComponent.ppuY);
-			g.rotate(-this.camera.transform.rotation);
-			g.translate(
-				-this.camera.transform.position.x,
-				-this.camera.transform.position.y,
-			);
-
+			this.cameraComponent.applyTransform(g);
 			for (const entity of this.entities) {
 				if (!entity.enabled) continue;
 				entity.render(g);

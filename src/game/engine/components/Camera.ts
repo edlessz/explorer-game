@@ -2,8 +2,8 @@ import Component from "../Component";
 import type { Vector2 } from "../types";
 
 class Camera extends Component {
-	public ppuX: number = 32; // pixels per unit
-	public ppuY: number = 32; // pixels per unit
+	public ppuX: number = 16; // pixels per unit
+	public ppuY: number = 16; // pixels per unit
 
 	public getBounds(): [Vector2, Vector2] | null {
 		const viewport = this.entity.game.getViewport();
@@ -24,6 +24,20 @@ class Camera extends Component {
 		};
 
 		return [min, max];
+	}
+
+	public applyTransform(g: CanvasRenderingContext2D): void {
+		const { position, rotation } = this.entity.transform;
+		const viewport = this.entity.game.getViewport();
+		if (!viewport) return;
+
+		g.scale(this.ppuX, this.ppuY);
+		g.rotate(-rotation);
+		const translation = this.roundPositionToPixel(
+			viewport.width / 2 / this.ppuX - position.x,
+			viewport.height / 2 / this.ppuY - position.y,
+		);
+		g.translate(translation.x, translation.y);
 	}
 
 	public roundPositionToPixel(x: number, y: number): Vector2 {

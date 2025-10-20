@@ -3,8 +3,8 @@ import Physics from "../engine/components/Physics";
 import TileMapCollider from "../engine/components/TileMapCollider";
 
 class PlayerController extends Component {
-	private moveSpeed: number = 5;
-	private jumpHeight: number = 5;
+	private moveSpeed: number = 10;
+	private jumpHeight: number = 10;
 
 	private physicsRef: Physics | null = null;
 	private tileMapColliderRef: TileMapCollider | null = null;
@@ -12,6 +12,11 @@ class PlayerController extends Component {
 	public setup(): void {
 		this.physicsRef = this.entity.getComponent(Physics);
 		this.tileMapColliderRef = this.entity.getComponent(TileMapCollider);
+
+		this.entity.transform.scale = {
+			x: 2,
+			y: 3,
+		};
 	}
 
 	public update(_deltaTime: number): void {
