@@ -50,7 +50,7 @@ class CursorController extends Component {
 		}
 	}
 
-	public onMouseUp(event: MouseEvent): void {
+	public onMouseUp(_event: MouseEvent): void {
 		const input = this.entity.game.input;
 		if (input.isMouseButtonPressed(0)) {
 			this.place(3);
