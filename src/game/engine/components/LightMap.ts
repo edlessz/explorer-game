@@ -6,6 +6,21 @@ class LightMap extends Component {
 	private lighting: Map<Address, number> = new Map();
 	private readonly chunkSize = 32; // Tiles per chunk
 
+	private dirtyChunks: Set<Address> = new Set();
+	public markDirty(chunkX: number, chunkY: number): void {
+		const chunkAddr = encodeAddress(chunkX, chunkY);
+		this.dirtyChunks.add(chunkAddr);
+	}
+
+	public updateDirtyChunks(): void {
+		if (this.dirtyChunks.size === 0) return;
+		for (const addr of this.dirtyChunks) {
+			const decodedAddress = decodeAddress(addr);
+			this.bakeChunkLighting(decodedAddress.x, decodedAddress.y);
+		}
+		this.dirtyChunks.clear();
+	}
+
 	private tileMapRef: TileMap | null = null;
 
 	public setup(): void {

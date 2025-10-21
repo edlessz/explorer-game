@@ -37,7 +37,7 @@ class TileMap extends Component {
 		// Mark the chunk containing this tile as dirty
 		const chunkX = Math.floor(x / this.chunkSize) * this.chunkSize;
 		const chunkY = Math.floor(y / this.chunkSize) * this.chunkSize;
-		this.lightMapRef?.bakeChunkLighting(chunkX, chunkY);
+		this.lightMapRef?.markDirty(chunkX, chunkY);
 
 		const chunkAddr = encodeAddress(chunkX, chunkY);
 		const chunk = this.chunkCache.get(chunkAddr);
@@ -137,6 +137,8 @@ class TileMap extends Component {
 		const maxChunkX = Math.floor(max.x / this.chunkSize) * this.chunkSize;
 		const minChunkY = Math.floor(min.y / this.chunkSize) * this.chunkSize;
 		const maxChunkY = Math.floor(max.y / this.chunkSize) * this.chunkSize;
+
+		this.lightMapRef?.updateDirtyChunks();
 
 		// Render each visible chunk
 		for (
