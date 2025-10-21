@@ -1,5 +1,6 @@
 import Component from "../Component";
 import { type Address, encodeAddress } from "../utils";
+import LightMap from "./LightMap";
 
 interface ChunkCache {
 	canvas: HTMLCanvasElement;
@@ -11,13 +12,16 @@ class TileMap extends Component {
 	private tiles: Map<Address, number> = new Map();
 	public tileSet: Map<number, HTMLImageElement> = new Map();
 
-	public lightingEnabled = true;
-	private lighting: Map<Address, number> = new Map();
-
 	// Chunk cache settings
 	private readonly chunkSize = 32; // Tiles per chunk
 	private chunkCache: Map<Address, ChunkCache> = new Map();
 	private cachePPU: { x: number; y: number } = { x: 32, y: 32 }; // PPU used for cached chunks
+
+	private lightMapRef: LightMap | null = null;
+
+	public setup(): void {
+		this.lightMapRef = this.entity.getComponent(LightMap);
+	}
 
 	public getTile(x: number, y: number): number {
 		const addr = encodeAddress(x, y);
@@ -33,14 +37,17 @@ class TileMap extends Component {
 		// Mark the chunk containing this tile as dirty
 		const chunkX = Math.floor(x / this.chunkSize) * this.chunkSize;
 		const chunkY = Math.floor(y / this.chunkSize) * this.chunkSize;
+		this.lightMapRef?.bakeChunkLighting(chunkX, chunkY);
+
 		const chunkAddr = encodeAddress(chunkX, chunkY);
 		const chunk = this.chunkCache.get(chunkAddr);
 		if (chunk) chunk.isDirty = true;
 	}
 
-	public getLighting(x: number, y: number): number {
-		const addr = encodeAddress(x, y);
-		return this.lighting.get(addr) ?? 0;
+	public markDirty(chunkX: number, chunkY: number): void {
+		const chunkAddr = encodeAddress(chunkX, chunkY);
+		const chunk = this.chunkCache.get(chunkAddr);
+		if (chunk) chunk.isDirty = true;
 	}
 
 	private getOrCreateChunkCache(chunkX: number, chunkY: number): ChunkCache {
@@ -104,9 +111,9 @@ class TileMap extends Component {
 				}
 
 				// Apply lighting overlay
-				if (this.lightingEnabled) {
-					// const lightValue = this.getLighting(x, y);
-					ctx.fillStyle = `rgba(0, 0, 0, ${0})`;
+				if (this.lightMapRef) {
+					const lightValue = this.lightMapRef.getLighting(x, y);
+					ctx.fillStyle = `rgba(0, 0, 0, ${1 - lightValue})`;
 					ctx.fillRect(dx * ppuX, dy * ppuY, ppuX, ppuY);
 				}
 			}

@@ -6,6 +6,7 @@ import PlayerController from "../game/components/PlayerController";
 import WorldGenerator from "../game/components/WorldGenerator";
 import Camera from "../game/engine/components/Camera";
 import ColorRenderer from "../game/engine/components/ColorRenderer";
+import LightMap from "../game/engine/components/LightMap";
 import Physics from "../game/engine/components/Physics";
 import TileMap from "../game/engine/components/TileMap";
 import TileMapCollider from "../game/engine/components/TileMapCollider";
@@ -28,6 +29,7 @@ camera.tag = "camera";
 const tileMap = game.addEntity();
 const tileMapComponent = tileMap.addComponent(TileMap);
 tileMap.addComponent(WorldGenerator);
+tileMap.addComponent(LightMap);
 tileMapComponent.tileSet = new Map([
 	[1, Object.assign(new Image(), { src: "dirt.png" })],
 	[2, Object.assign(new Image(), { src: "grass.png" })],

@@ -144,13 +144,15 @@ class Game {
 		}
 
 		g.resetTransform();
-		g.fillStyle = "black";
+		g.globalCompositeOperation = "difference";
+		g.fillStyle = "white";
 		g.font = "16px monospace";
 		g.fillText(`FPS: ${this.frameTimer.getFPS().toFixed(2)}`, 10, 20);
 
 		for (let i = 0; i < this.debugList.length; i++) {
 			g.fillText(this.debugList[i], 10, 40 + i * 20);
 		}
+		g.globalCompositeOperation = "source-over";
 		this.debugList = [];
 	}
 
