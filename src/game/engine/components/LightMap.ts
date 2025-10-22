@@ -108,7 +108,7 @@ class LightMap extends Component {
 				const tileId = this.tileMapRef?.getTile(tileX, tileY);
 
 				// tileId 4 is a light source with full brightness
-				if (tileId === 1) {
+				if (tileId === 4) {
 					const affectedChunks = this.propagateLighting(tileX, tileY, 1);
 					for (const addr of affectedChunks) {
 						const decodedAddress = decodeAddress(addr);

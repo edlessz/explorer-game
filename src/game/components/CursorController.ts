@@ -43,7 +43,7 @@ class CursorController extends Component {
 
 		const input = this.game.input;
 		if (input.isMouseButtonPressed(0)) {
-			this.place(1);
+			this.place(4);
 		}
 		if (input.isMouseButtonPressed(2)) {
 			this.place(0);
@@ -53,7 +53,7 @@ class CursorController extends Component {
 	public onMouseUp(_event: MouseEvent): void {
 		const input = this.game.input;
 		if (input.isMouseButtonPressed(0)) {
-			this.place(1);
+			this.place(4);
 		}
 		if (input.isMouseButtonPressed(2)) {
 			this.place(0);
