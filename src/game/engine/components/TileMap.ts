@@ -1,6 +1,7 @@
 import Component from "../Component";
 import { type Address, encodeAddress } from "../utils";
 import LightMap from "./LightMap";
+import TileRegistry from "./TileRegistry";
 
 interface ChunkCache {
 	canvas: HTMLCanvasElement;
@@ -10,18 +11,21 @@ interface ChunkCache {
 
 class TileMap extends Component {
 	private tiles: Map<Address, number> = new Map();
-	public tileSet: Map<number, HTMLImageElement> = new Map();
 
 	// Chunk cache settings
 	private readonly chunkSize = 32; // Tiles per chunk
 	private chunkCache: Map<Address, ChunkCache> = new Map();
 	private cachePPU: { x: number; y: number } = { x: 32, y: 32 }; // PPU used for cached chunks
 
+	private tileRegistryRef: TileRegistry | null = null;
 	private lightMapRef: LightMap | null = null;
+
+	private tileAssets: Map<number, HTMLImageElement> = new Map();
 
 	public debugBounds: boolean = false;
 
 	public setup(): void {
+		this.tileRegistryRef = this.entity.getComponent(TileRegistry);
 		this.lightMapRef = this.entity.getComponent(LightMap);
 	}
 
@@ -95,10 +99,19 @@ class TileMap extends Component {
 				const x = chunkX + dx;
 				const y = chunkY + dy;
 				const tileId = this.getTile(x, y);
-				const tileImage = this.tileSet.get(tileId);
 
 				if (tileId > 0) {
-					if (!tileImage) {
+					const tileAssetPath =
+						this.tileRegistryRef?.getTileEntry(tileId)?.assetPath;
+					let tileAsset = this.tileAssets.get(tileId) ?? null;
+					if (tileAssetPath && !tileAsset) {
+						const img = new Image();
+						img.src = tileAssetPath;
+						this.tileAssets.set(tileId, img);
+						tileAsset = img;
+					}
+
+					if (!tileAsset || tileAsset.width === 0) {
 						// Fallback magenta checkerboard
 						ctx.fillStyle = "#000";
 						ctx.fillRect(dx * ppuX, dy * ppuY, ppuX, ppuY);
@@ -111,7 +124,7 @@ class TileMap extends Component {
 							ppuY / 2,
 						);
 					} else {
-						ctx.drawImage(tileImage, dx * ppuX, dy * ppuY, ppuX, ppuY);
+						ctx.drawImage(tileAsset, dx * ppuX, dy * ppuY, ppuX, ppuY);
 					}
 				}
 

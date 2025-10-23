@@ -10,6 +10,7 @@ import LightMap from "../game/engine/components/LightMap";
 import Physics from "../game/engine/components/Physics";
 import TileMap from "../game/engine/components/TileMap";
 import TileMapCollider from "../game/engine/components/TileMapCollider";
+import TileRegistry from "../game/engine/components/TileRegistry";
 import Game from "../game/engine/Game";
 
 const game = new Game();
@@ -27,14 +28,36 @@ camera.addComponent(CameraController);
 camera.tag = "camera";
 
 const tileMap = game.addEntity();
-const tileMapComponent = tileMap.addComponent(TileMap);
+tileMap.addComponent(TileMap);
 tileMap.addComponent(WorldGenerator);
 tileMap.addComponent(LightMap);
-tileMapComponent.tileSet = new Map([
-	[1, Object.assign(new Image(), { src: "dirt.png" })],
-	[2, Object.assign(new Image(), { src: "grass.png" })],
-	[3, Object.assign(new Image(), { src: "stone.png" })],
-]);
+const tileRegistry = tileMap.addComponent(TileRegistry);
+tileRegistry.registerTile({
+	tileId: 1,
+	name: "Dirt",
+	assetPath: "dirt.png",
+	solid: true,
+});
+tileRegistry.registerTile({
+	tileId: 2,
+	name: "Grass",
+	assetPath: "grass.png",
+	solid: true,
+});
+tileRegistry.registerTile({
+	tileId: 3,
+	name: "Stone",
+	assetPath: "stone.png",
+	solid: true,
+});
+tileRegistry.registerTile({
+	tileId: 4,
+	name: "Light",
+	assetPath: "light.png",
+	solid: false,
+	lightIntensity: 1,
+	lightRadius: 10,
+});
 tileMap.tag = "editableTileMap";
 
 const cursor = game.addEntity();

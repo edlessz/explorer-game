@@ -1,10 +1,14 @@
 import Component from "../Component";
 import { type Address, decodeAddress, encodeAddress } from "../utils";
 import TileMap from "./TileMap";
+import TileRegistry from "./TileRegistry";
 
 class LightMap extends Component {
 	private lighting: Map<Address, number> = new Map();
 	private readonly chunkSize = 32; // Tiles per chunk
+
+	private tileMapRef: TileMap | null = null;
+	private tileRegistryRef: TileRegistry | null = null;
 
 	private dirtyChunks: Set<Address> = new Set();
 	public markDirty(chunkX: number, chunkY: number): void {
@@ -22,10 +26,9 @@ class LightMap extends Component {
 		this.dirtyChunks.clear();
 	}
 
-	private tileMapRef: TileMap | null = null;
-
 	public setup(): void {
 		this.tileMapRef = this.entity.getComponent(TileMap);
+		this.tileRegistryRef = this.entity.getComponent(TileRegistry);
 	}
 
 	public getLighting(x: number, y: number): number {
@@ -51,13 +54,12 @@ class LightMap extends Component {
 	public bakeChunkLighting(chunkX: number, chunkY: number): void {
 		if (!this.tileMapRef) return;
 
-		const lightRadius = 5;
-
 		let lightSourcesChanged = false;
 		const affectedChunks = new Set<Address>();
 		for (let x = chunkX; x < chunkX + this.chunkSize; x++) {
 			for (let y = chunkY; y < chunkY + this.chunkSize; y++) {
 				const tileId = this.tileMapRef.getTile(x, y);
+				const tileEntry = this.tileRegistryRef?.getTileEntry(tileId);
 				const address = encodeAddress(x, y);
 
 				// Step 1: Clear existing light data
@@ -68,7 +70,9 @@ class LightMap extends Component {
 				// If a light is added or removed, mark that light sources changed
 				const dependencies = this.lightSourceDependencies.get(address);
 				const hadLightSource = !!dependencies;
-				const hasLightSource = tileId === 4; // Assuming tile ID 4 is a light source
+				const hasLightSource =
+					tileEntry?.lightIntensity !== undefined &&
+					tileEntry.lightIntensity > 0;
 				if (hadLightSource !== hasLightSource) {
 					lightSourcesChanged = true;
 					if (hadLightSource && dependencies.size > 0) {
@@ -100,10 +104,11 @@ class LightMap extends Component {
 				this.lightSourceDependencies.delete(address);
 
 				// If the tile is not a light source, skip further processing
-				if (tileId !== 4) continue;
+				if (!hasLightSource) continue;
 
 				// Step 4: New light source - calculate affected tiles
 				const affectedTiles = new Set<Address>();
+				const lightRadius = tileEntry?.lightRadius ?? 0;
 				for (let dx = -lightRadius; dx <= lightRadius; dx++) {
 					for (let dy = -lightRadius; dy <= lightRadius; dy++) {
 						const dist = dx * dx + dy * dy;
@@ -147,9 +152,22 @@ class LightMap extends Component {
 					const sourcePos = decodeAddress(sourceAddr);
 					const dx = x - sourcePos.x;
 					const dy = y - sourcePos.y;
+					const sourceTileId = this.tileMapRef.getTile(
+						sourcePos.x,
+						sourcePos.y,
+					);
+					const sourceTileEntry =
+						this.tileRegistryRef?.getTileEntry(sourceTileId);
+					const lightRadius = sourceTileEntry?.lightRadius ?? 0;
 					const dist = Math.sqrt(dx * dx + dy * dy);
 
-					const lightValue = Math.max(0, 1 - dist / lightRadius);
+					const ratio = dist / lightRadius;
+
+					const lightValue = Math.max(
+						0,
+						(sourceTileEntry?.lightIntensity ?? 0) -
+							ratio * (sourceTileEntry?.lightIntensity ?? 0),
+					);
 					maxLightValue = Math.max(maxLightValue, lightValue);
 				}
 
@@ -161,11 +179,11 @@ class LightMap extends Component {
 		// But only if light sources actually changed in this chunk. If not, skip all chunks queued for baking
 		if (lightSourcesChanged) {
 			const currentChunkAddr = encodeAddress(chunkX, chunkY);
-			for (const tileDep of affectedChunks) {
+			for (const chunkDep of affectedChunks) {
 				// Skip the current chunk - we just baked it
-				if (tileDep === currentChunkAddr) continue;
+				if (chunkDep === currentChunkAddr) continue;
 
-				const { x, y } = decodeAddress(tileDep);
+				const { x, y } = decodeAddress(chunkDep);
 				this.markDirty(x, y);
 				this.tileMapRef?.markDirty(x, y);
 			}

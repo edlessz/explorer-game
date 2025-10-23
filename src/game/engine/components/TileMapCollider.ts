@@ -1,16 +1,26 @@
 import Component from "../Component";
 import type { Vector2 } from "../types";
 import TileMap from "./TileMap";
+import TileRegistry from "./TileRegistry";
+
+interface TileMapContainer {
+	tileMap: TileMap;
+	tileRegistry: TileRegistry | null;
+}
 
 class TileMapCollider extends Component {
-	private tileMaps: TileMap[] = [];
+	private tileMaps: TileMapContainer[] = [];
 	private readonly edgeBoundary: number = 0.001;
 
 	public setup(): void {
-		this.tileMaps = this.game
-			.getEntitiesWithComponent(TileMap)
-			.map((e) => e.getComponent(TileMap))
-			.filter((tm): tm is TileMap => tm !== null);
+		const foundTileMaps = this.game.getEntitiesWithComponent(TileMap);
+
+		this.tileMaps = foundTileMaps
+			.map((tm) => ({
+				tileMap: tm.getComponent(TileMap),
+				tileRegistry: tm.getComponent(TileRegistry),
+			}))
+			.filter((tm) => tm.tileMap !== null) as TileMapContainer[];
 	}
 
 	public grounded(): boolean {
@@ -22,16 +32,20 @@ class TileMapCollider extends Component {
 
 	private pairsCollidingWithTileMap(
 		pairs: Vector2[],
-		tileMap: TileMap,
+		tileMap: TileMapContainer,
 	): boolean {
 		const x = this.entity.transform.position.x;
 		const y = this.entity.transform.position.y;
-		const tileMapPos = tileMap.entity.transform.position;
-		return pairs.some(
-			({ x: dx, y: dy }) =>
-				(tileMap.getTile(dx + x - tileMapPos.x, dy + y - tileMapPos.y) ?? 0) >
-				0,
-		);
+		const tileMapPos = tileMap.tileMap.entity.transform.position;
+		return pairs.some(({ x: dx, y: dy }) => {
+			const tileId =
+				tileMap.tileMap.getTile(dx + x - tileMapPos.x, dy + y - tileMapPos.y) ??
+				0;
+			if (!tileMap.tileRegistry) return tileId > 0;
+
+			const tileEntry = tileMap.tileRegistry.getTileEntry(tileId);
+			return tileEntry?.solid ?? false;
+		});
 	}
 	public colliding(): boolean {
 		if (this.tileMaps.length === 0) return false;
