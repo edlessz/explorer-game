@@ -131,8 +131,28 @@ class TileMap extends Component {
 				// Apply lighting overlay
 				if (this.lightMapRef) {
 					const lightValue = this.lightMapRef.getLighting(x, y);
-					ctx.fillStyle = `rgba(0, 0, 0, ${1 - lightValue})`;
+					const intensity = lightValue?.intensity ?? 0;
+					const lightHex = lightValue?.hex ?? "#ffffff";
+
+					// Blend the light color from black (0 intensity) to the light color (1 intensity)
+					// Parse light color
+					const r = parseInt(lightHex.slice(1, 3), 16);
+					const g = parseInt(lightHex.slice(3, 5), 16);
+					const b = parseInt(lightHex.slice(5, 7), 16);
+
+					// Interpolate from black to light color based on intensity
+					const finalR = Math.round(r * intensity);
+					const finalG = Math.round(g * intensity);
+					const finalB = Math.round(b * intensity);
+
+					// Apply as a multiply overlay
+					// White (#ffffff) at full intensity = no darkening (multiply by white = unchanged)
+					// Red (#ff0000) at full intensity = red tint
+					// Black (#000000) at zero intensity = fully dark
+					ctx.globalCompositeOperation = "multiply";
+					ctx.fillStyle = `rgb(${finalR}, ${finalG}, ${finalB})`;
 					ctx.fillRect(dx * ppuX, dy * ppuY, ppuX, ppuY);
+					ctx.globalCompositeOperation = "source-over";
 				}
 			}
 		}

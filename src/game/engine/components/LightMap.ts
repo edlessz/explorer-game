@@ -1,10 +1,16 @@
 import Component from "../Component";
-import { type Address, decodeAddress, encodeAddress } from "../utils";
+import {
+	type Address,
+	decodeAddress,
+	encodeAddress,
+	type MixedColor,
+	mixAdditiveColors,
+} from "../utils";
 import TileMap from "./TileMap";
 import TileRegistry from "./TileRegistry";
 
 class LightMap extends Component {
-	private lighting: Map<Address, number> = new Map();
+	private lighting: Map<Address, MixedColor> = new Map();
 	private readonly chunkSize = 32; // Tiles per chunk
 
 	private tileMapRef: TileMap | null = null;
@@ -31,12 +37,12 @@ class LightMap extends Component {
 		this.tileRegistryRef = this.entity.getComponent(TileRegistry);
 	}
 
-	public getLighting(x: number, y: number): number {
+	public getLighting(x: number, y: number): MixedColor | null {
 		const addr = encodeAddress(x, y);
-		return this.lighting.get(addr) ?? 0;
+		return this.lighting.get(addr) ?? null;
 	}
 
-	public setLighting(x: number, y: number, value: number): void {
+	public setLighting(x: number, y: number, value: MixedColor): void {
 		const addr = encodeAddress(x, y);
 		this.lighting.set(addr, value);
 	}
@@ -146,12 +152,14 @@ class LightMap extends Component {
 
 				if (!sources || sources.size === 0) continue;
 
-				let maxLightValue = 0;
-
+				// Collect all light sources with their actual intensity at this position
+				const colors: MixedColor[] = [];
 				for (const sourceAddr of sources) {
 					const sourcePos = decodeAddress(sourceAddr);
 					const dx = x - sourcePos.x;
 					const dy = y - sourcePos.y;
+
+					if (!this.tileMapRef) continue;
 					const sourceTileId = this.tileMapRef.getTile(
 						sourcePos.x,
 						sourcePos.y,
@@ -159,19 +167,53 @@ class LightMap extends Component {
 					const sourceTileEntry =
 						this.tileRegistryRef?.getTileEntry(sourceTileId);
 					const lightRadius = sourceTileEntry?.lightRadius ?? 0;
+					const lightIntensity = sourceTileEntry?.lightIntensity ?? 0;
 					const dist = Math.sqrt(dx * dx + dy * dy);
 
+					// Calculate intensity with distance falloff
 					const ratio = dist / lightRadius;
+					const intensityAtPosition = Math.max(0, lightIntensity * (1 - ratio));
 
-					const lightValue = Math.max(
-						0,
-						(sourceTileEntry?.lightIntensity ?? 0) -
-							ratio * (sourceTileEntry?.lightIntensity ?? 0),
-					);
-					maxLightValue = Math.max(maxLightValue, lightValue);
+					// Only add light sources that actually contribute
+					if (intensityAtPosition > 0) {
+						colors.push({
+							hex: sourceTileEntry?.lightColor ?? "#ffffff",
+							intensity: intensityAtPosition,
+						});
+					}
 				}
 
-				this.lighting.set(addr, maxLightValue);
+				// Mix all light colors additively with their proper intensities
+				if (colors.length > 0) {
+					const mixedHex = mixAdditiveColors(colors);
+
+					// Extract brightness from the mixed color
+					// Parse RGB values
+					const r = parseInt(mixedHex.slice(1, 3), 16) / 255;
+					const g = parseInt(mixedHex.slice(3, 5), 16) / 255;
+					const b = parseInt(mixedHex.slice(5, 7), 16) / 255;
+
+					// Calculate brightness (luminance)
+					const brightness = Math.max(r, g, b);
+
+					// Normalize color to remove brightness info
+					// This separates "how bright" from "what color"
+					const normalizedHex =
+						brightness > 0
+							? `#${Math.round((r / brightness) * 255)
+									.toString(16)
+									.padStart(2, "0")}${Math.round((g / brightness) * 255)
+									.toString(16)
+									.padStart(2, "0")}${Math.round((b / brightness) * 255)
+									.toString(16)
+									.padStart(2, "0")}`
+							: "#000000";
+
+					this.lighting.set(addr, {
+						hex: normalizedHex,
+						intensity: brightness,
+					});
+				}
 			}
 		}
 

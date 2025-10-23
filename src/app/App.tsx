@@ -55,8 +55,18 @@ tileRegistry.registerTile({
 	name: "Light",
 	assetPath: "light.png",
 	solid: false,
+	lightIntensity: 0.5,
+	lightRadius: 10,
+	lightColor: "#ffffff",
+});
+tileRegistry.registerTile({
+	tileId: 5,
+	name: "Light",
+	assetPath: "light.png",
+	solid: false,
 	lightIntensity: 1,
 	lightRadius: 10,
+	lightColor: "#0000ff",
 });
 tileMap.tag = "editableTileMap";
 

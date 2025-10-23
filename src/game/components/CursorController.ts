@@ -46,7 +46,7 @@ class CursorController extends Component {
 			this.place(4);
 		}
 		if (input.isMouseButtonPressed(2)) {
-			this.place(0);
+			this.place(5);
 		}
 	}
 
@@ -56,7 +56,7 @@ class CursorController extends Component {
 			this.place(4);
 		}
 		if (input.isMouseButtonPressed(2)) {
-			this.place(0);
+			this.place(5);
 		}
 	}
 

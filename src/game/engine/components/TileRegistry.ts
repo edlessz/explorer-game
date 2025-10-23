@@ -7,6 +7,7 @@ interface TileRegistryEntry {
 	solid?: boolean;
 	lightIntensity?: number;
 	lightRadius?: number;
+	lightColor?: string;
 }
 
 class TileRegistry extends Component {

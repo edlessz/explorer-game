@@ -14,6 +14,8 @@ class ColorRenderer extends Component {
 		g.fillStyle = this.color;
 		g.fillRect(-0.5, -0.5, 1, 1);
 
+		console.log(2);
+
 		g.restore();
 	}
 }
