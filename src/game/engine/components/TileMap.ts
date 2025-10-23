@@ -19,6 +19,8 @@ class TileMap extends Component {
 
 	private lightMapRef: LightMap | null = null;
 
+	public debugBounds: boolean = false;
+
 	public setup(): void {
 		this.lightMapRef = this.entity.getComponent(LightMap);
 	}
@@ -174,15 +176,30 @@ class TileMap extends Component {
 					this.chunkSize,
 				);
 
-				g.strokeStyle = "rgba(0,255,0,0.3)";
-				g.lineWidth = 1 / camera.ppuX;
-				g.strokeRect(worldX, worldY, this.chunkSize, this.chunkSize);
-				g.font = `${12 / camera.ppuX}px monospace`;
-				g.fillText(
-					`(${chunkX}, ${chunkY})`,
-					chunkX + this.chunkSize / 2,
-					chunkY + this.chunkSize / 2,
-				);
+				if (this.debugBounds) {
+					g.strokeStyle = "rgba(0,255,0,0.3)";
+					g.fillStyle = g.strokeStyle;
+					g.lineWidth = 1 / camera.ppuX;
+					g.strokeRect(worldX, worldY, this.chunkSize, this.chunkSize);
+
+					const textSize = 12 / camera.ppuX;
+					const text = `(${chunkX}, ${chunkY})`;
+
+					g.font = `${textSize}px monospace`;
+					const { x, y } = camera.entity.transform.position;
+					const textMetrics = g.measureText(text);
+					g.fillText(
+						text,
+						Math.min(
+							Math.max(chunkX + 1, x),
+							chunkX + this.chunkSize - textMetrics.width - 1,
+						),
+						Math.min(
+							Math.max(chunkY + textSize + 1, y),
+							chunkY + this.chunkSize - 1,
+						),
+					);
+				}
 			}
 		}
 	}

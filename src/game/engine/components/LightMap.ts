@@ -53,7 +53,6 @@ class LightMap extends Component {
 
 		const lightRadius = 5;
 
-		// Step 2: Recalculate lighting based on tiles in the chunk
 		let lightSourcesChanged = false;
 		const affectedChunks = new Set<Address>();
 		for (let x = chunkX; x < chunkX + this.chunkSize; x++) {
