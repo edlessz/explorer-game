@@ -18,6 +18,7 @@ class LightMap extends Component {
 			const decodedAddress = decodeAddress(addr);
 			this.bakeChunkLighting(decodedAddress.x, decodedAddress.y);
 		}
+		console.log(`Baked ${this.dirtyChunks.size} light map chunks`);
 		this.dirtyChunks.clear();
 	}
 
@@ -37,86 +38,121 @@ class LightMap extends Component {
 		this.lighting.set(addr, value);
 	}
 
-	private propagateLighting(
-		startX: number,
-		startY: number,
-		startValue: number,
-		falloff = 0.1,
-	): Set<Address> {
-		// Use a queue for iterative breadth-first propagation
-		const queue: Array<{ x: number; y: number; value: number }> = [
-			{ x: startX, y: startY, value: startValue },
-		];
-		const affectedChunks: Set<Address> = new Set();
-
-		while (queue.length > 0) {
-			const current = queue.shift();
-			if (!current) break;
-			const { x, y, value } = current;
-
-			// Set the lighting at this position
-			const addr = encodeAddress(x, y);
-			const currentValue = this.lighting.get(addr) ?? 0;
-
-			const chunkX = Math.floor(x / this.chunkSize) * this.chunkSize;
-			const chunkY = Math.floor(y / this.chunkSize) * this.chunkSize;
-			const chunkAddr = encodeAddress(chunkX, chunkY);
-			affectedChunks.add(chunkAddr);
-
-			if (value <= currentValue) continue; // Skip if not brighter
-
-			this.lighting.set(addr, value);
-
-			// Calculate the new value for neighbors
-			const newValue = Math.max(0, value - falloff);
-			if (newValue <= 0) continue; // Stop propagating if light is too dim
-
-			// Add neighbors to the queue
-			const neighbors = [
-				[x + 1, y],
-				[x - 1, y],
-				[x, y + 1],
-				[x, y - 1],
-			];
-
-			for (const [nx, ny] of neighbors) {
-				const nAddr = encodeAddress(nx, ny);
-				const neighborValue = this.lighting.get(nAddr) ?? 0;
-
-				// Only add to queue if this would make it brighter
-				if (newValue > neighborValue) {
-					queue.push({ x: nx, y: ny, value: newValue });
-				}
-			}
-		}
-
-		return affectedChunks;
-	}
+	private lightSourceDependencies: Map<Address, Set<Address>> = new Map();
+	// Reverse mapping: tile -> set of light sources affecting it
+	private tileLightSources: Map<Address, Set<Address>> = new Map();
 
 	public bakeChunkLighting(chunkX: number, chunkY: number): void {
-		// Calculate the light travel distance (max brightness / falloff)
-		const lightRadius = Math.ceil(1 / 0.1);
+		if (!this.tileMapRef) return;
 
-		// Step 2: Find all light sources that could affect this chunk
-		// Search in a radius around the chunk to catch nearby light sources
-		const searchRadius = lightRadius;
-		for (let dx = -searchRadius; dx < this.chunkSize + searchRadius; dx++) {
-			for (let dy = -searchRadius; dy < this.chunkSize + searchRadius; dy++) {
-				const tileX = chunkX + dx;
-				const tileY = chunkY + dy;
+		const lightRadius = 225;
 
-				const tileId = this.tileMapRef?.getTile(tileX, tileY);
+		// Step 1: Clear existing lighting data for the chunk
+		for (let x = chunkX; x < chunkX + this.chunkSize; x++) {
+			for (let y = chunkY; y < chunkY + this.chunkSize; y++) {
+				const addr = encodeAddress(x, y);
+				this.lighting.delete(addr);
 
-				// tileId 4 is a light source with full brightness
-				if (tileId === 4) {
-					const affectedChunks = this.propagateLighting(tileX, tileY, 1);
-					for (const addr of affectedChunks) {
-						const decodedAddress = decodeAddress(addr);
-						this.tileMapRef?.markDirty(decodedAddress.x, decodedAddress.y);
+				const dependentTiles = this.lightSourceDependencies.get(addr);
+				if (dependentTiles) {
+					for (const sourceAddr of dependentTiles) {
+						const { x: tileX, y: tileY } = decodeAddress(sourceAddr);
+						const newChunkX =
+							Math.floor(tileX / this.chunkSize) * this.chunkSize;
+						const newChunkY =
+							Math.floor(tileY / this.chunkSize) * this.chunkSize;
+						this.markDirty(newChunkX, newChunkY);
 					}
 				}
 			}
 		}
+
+		// Step 2: Recalculate lighting based on tiles in the chunk
+		const affectedChunks = new Set<Address>();
+		for (let x = chunkX; x < chunkX + this.chunkSize; x++) {
+			for (let y = chunkY; y < chunkY + this.chunkSize; y++) {
+				const tileId = this.tileMapRef.getTile(x, y);
+				const address = encodeAddress(x, y);
+
+				// Clean up old forward mapping and its reverse dependencies
+				const oldAffectedTiles = this.lightSourceDependencies.get(address);
+				if (oldAffectedTiles) {
+					// Remove this source from all tiles it used to affect
+					for (const affectedAddr of oldAffectedTiles) {
+						const sources = this.tileLightSources.get(affectedAddr);
+						if (sources) {
+							sources.delete(address);
+							if (sources.size === 0) {
+								this.tileLightSources.delete(affectedAddr);
+							}
+						}
+					}
+				}
+				this.lightSourceDependencies.delete(address);
+
+				if (tileId !== 4) continue; // Assuming tile ID 4 is a light source
+
+				const affectedTiles = new Set<Address>();
+				for (let dx = -lightRadius; dx <= lightRadius; dx++) {
+					for (let dy = -lightRadius; dy <= lightRadius; dy++) {
+						const dist = dx * dx + dy * dy;
+						if (dist > lightRadius * lightRadius) continue;
+
+						const targetX = x + dx;
+						const targetY = y + dy;
+						const targetAddr = encodeAddress(targetX, targetY);
+
+						// Forward mapping: source -> affected tiles
+						affectedTiles.add(targetAddr);
+						const newChunkX =
+							Math.floor(targetX / this.chunkSize) * this.chunkSize;
+						const newChunkY =
+							Math.floor(targetY / this.chunkSize) * this.chunkSize;
+						affectedChunks.add(encodeAddress(newChunkX, newChunkY));
+
+						// Reverse mapping: affected tile -> sources
+						if (!this.tileLightSources.has(targetAddr)) {
+							this.tileLightSources.set(targetAddr, new Set());
+						}
+						this.tileLightSources.get(targetAddr)?.add(address);
+					}
+				}
+
+				this.lightSourceDependencies.set(address, affectedTiles);
+			}
+		}
+
+		// Step 3: Apply lighting contributions to tiles in the chunk
+		for (let x = chunkX; x < chunkX + this.chunkSize; x++) {
+			for (let y = chunkY; y < chunkY + this.chunkSize; y++) {
+				const addr = encodeAddress(x, y);
+				const sources = this.tileLightSources.get(addr);
+
+				if (!sources || sources.size === 0) continue;
+
+				let maxLightValue = 0;
+
+				for (const sourceAddr of sources) {
+					const sourcePos = decodeAddress(sourceAddr);
+					const dx = x - sourcePos.x;
+					const dy = y - sourcePos.y;
+					// const dist = Math.sqrt(dx * dx + dy * dy);
+					const dist = dx * dx + dy * dy;
+
+					const lightValue = Math.max(0, 1 - dist / lightRadius);
+					maxLightValue = Math.max(maxLightValue, lightValue);
+				}
+
+				this.lighting.set(addr, maxLightValue);
+			}
+		}
+
+		for (const tileDep of affectedChunks) {
+			const { x, y } = decodeAddress(tileDep);
+			this.markDirty(x, y);
+		}
+
+		this.tileMapRef?.markDirty(chunkX, chunkY);
 	}
 }
 

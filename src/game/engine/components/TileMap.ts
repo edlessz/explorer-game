@@ -28,6 +28,9 @@ class TileMap extends Component {
 		return this.tiles.get(addr) ?? 0;
 	}
 	public setTile(x: number, y: number, tileId: number): void {
+		const existingTileId = this.getTile(x, y);
+		if (existingTileId === tileId) return;
+
 		const addr = encodeAddress(
 			x - this.entity.transform.position.x,
 			y - this.entity.transform.position.y,
@@ -169,6 +172,16 @@ class TileMap extends Component {
 					worldY,
 					this.chunkSize,
 					this.chunkSize,
+				);
+
+				g.strokeStyle = "rgba(0,255,0,0.3)";
+				g.lineWidth = 1 / camera.ppuX;
+				g.strokeRect(worldX, worldY, this.chunkSize, this.chunkSize);
+				g.font = `${12 / camera.ppuX}px monospace`;
+				g.fillText(
+					`(${chunkX}, ${chunkY})`,
+					chunkX + this.chunkSize / 2,
+					chunkY + this.chunkSize / 2,
 				);
 			}
 		}
