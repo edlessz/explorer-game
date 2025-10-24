@@ -192,7 +192,12 @@ class Game {
 
 		if (this.camera && this.cameraComponent) {
 			this.cameraComponent.applyTransform(g);
-			for (const entity of this.entities) {
+			const sortedEntities = this.entities.sort((a, b) => {
+				const zA = a.transform.position.z;
+				const zB = b.transform.position.z;
+				return zA - zB;
+			});
+			for (const entity of sortedEntities) {
 				if (!entity.enabled) continue;
 				entity.render(g);
 			}

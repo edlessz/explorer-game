@@ -11,7 +11,7 @@ class Entity {
 	public tag: string | null = null;
 
 	public transform: Transform = {
-		position: { x: 0, y: 0 },
+		position: { x: 0, y: 0, z: 0 },
 		rotation: 0,
 		scale: { x: 1, y: 1 },
 	};

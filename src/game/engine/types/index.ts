@@ -2,8 +2,13 @@ export interface Vector2 {
 	x: number;
 	y: number;
 }
+export interface Vector3 {
+	x: number;
+	y: number;
+	z: number;
+}
 export interface Transform {
-	position: Vector2;
+	position: Vector3;
 	rotation: number;
 	scale: Vector2;
 }

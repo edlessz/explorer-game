@@ -16,6 +16,8 @@ class CursorController extends Component {
 				.getEntitiesWithComponent(TileMap)
 				.find((e) => e.tag === "editableTileMap")
 				?.getComponent(TileMap) ?? null;
+
+		this.entity.transform.position.z = 5;
 	}
 
 	public update(_deltaTime: number): void {
