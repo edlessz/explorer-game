@@ -12,6 +12,11 @@ interface TileRegistryEntry {
 class TileRegistry extends Component {
 	private registry: Map<number, TileRegistryEntry> = new Map();
 
+	public registerTiles(entries: TileRegistryEntry[]): void {
+		for (const entry of entries) {
+			this.registry.set(entry.tileId, entry);
+		}
+	}
 	public registerTile(entry: TileRegistryEntry): void {
 		this.registry.set(entry.tileId, entry);
 	}

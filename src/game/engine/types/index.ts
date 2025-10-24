@@ -7,3 +7,10 @@ export interface Transform {
 	rotation: number;
 	scale: Vector2;
 }
+export interface Scene {
+	entities: SceneEntity[];
+}
+interface SceneEntity {
+	tag: string;
+	components: Partial<Record<string, object>>;
+}

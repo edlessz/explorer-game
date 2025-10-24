@@ -1,9 +1,16 @@
 import type Component from "./Component";
 import type { ComponentConstructor } from "./Component";
 import Camera from "./components/Camera";
+import ColorRenderer from "./components/ColorRenderer";
+import LightMap from "./components/LightMap";
+import Physics from "./components/Physics";
+import TileMap from "./components/TileMap";
+import TileMapCollider from "./components/TileMapCollider";
+import TileRegistry from "./components/TileRegistry";
 import Entity from "./Entity";
 import FrameTimer from "./FrameTimer";
 import Input from "./Input";
+import type { Scene } from "./types";
 
 class Game {
 	private viewport: HTMLCanvasElement | null = null;
@@ -15,6 +22,54 @@ class Game {
 	private entities: Entity[] = [];
 	private camera: Entity | null = null;
 	private cameraComponent: Camera | null = null;
+
+	private componentRegistry = new Map<
+		string,
+		ComponentConstructor<Component>
+	>();
+	public registerComponent<T extends Component>(
+		ctor: ComponentConstructor<T>,
+	): void {
+		this.componentRegistry.set(ctor.name, ctor);
+	}
+	constructor() {
+		this.registerComponent(Camera);
+		this.registerComponent(ColorRenderer);
+		this.registerComponent(LightMap);
+		this.registerComponent(Physics);
+		this.registerComponent(TileMap);
+		this.registerComponent(TileMapCollider);
+		this.registerComponent(TileRegistry);
+	}
+
+	public loadScene(scene: Scene): void {
+		this.entities = [];
+		for (const sceneEntity of scene.entities) {
+			const entity = this.addEntity();
+			entity.tag = sceneEntity.tag;
+			for (const [componentName, componentData] of Object.entries(
+				sceneEntity.components,
+			)) {
+				const ctor = this.componentRegistry.get(componentName);
+				if (!ctor) {
+					console.warn(
+						`Component ${componentName} not registered in the Game's component registry.`,
+					);
+					continue;
+				}
+				const component = entity.addComponent(ctor);
+				Object.assign(component, componentData);
+				if (
+					componentName === "Camera" &&
+					componentData &&
+					"main" in componentData &&
+					componentData.main
+				) {
+					this.setCamera(entity);
+				}
+			}
+		}
+	}
 
 	private debugList: string[] = [];
 	public debug(s: string): void {

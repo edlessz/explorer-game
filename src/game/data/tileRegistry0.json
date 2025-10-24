@@ -1,0 +1,28 @@
+[
+	{
+		"tileId": 1,
+		"name": "Dirt",
+		"assetPath": "dirt.png",
+		"solid": true
+	},
+	{
+		"tileId": 2,
+		"name": "Grass",
+		"assetPath": "grass.png",
+		"solid": true
+	},
+	{
+		"tileId": 3,
+		"name": "Stone",
+		"assetPath": "stone.png",
+		"solid": true
+	},
+	{
+		"tileId": 4,
+		"name": "Light",
+		"assetPath": "light.png",
+		"solid": false,
+		"lightIntensity": 1.0,
+		"lightRadius": 10
+	}
+]

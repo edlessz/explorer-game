@@ -4,67 +4,26 @@ import CameraController from "../game/components/CameraController";
 import CursorController from "../game/components/CursorController";
 import PlayerController from "../game/components/PlayerController";
 import WorldGenerator from "../game/components/WorldGenerator";
-import Camera from "../game/engine/components/Camera";
-import ColorRenderer from "../game/engine/components/ColorRenderer";
-import LightMap from "../game/engine/components/LightMap";
-import Physics from "../game/engine/components/Physics";
-import TileMap from "../game/engine/components/TileMap";
-import TileMapCollider from "../game/engine/components/TileMapCollider";
+import scene0 from "../game/data/scene0.json";
+import tileRegistry0 from "../game/data/tileRegistry0.json";
 import TileRegistry from "../game/engine/components/TileRegistry";
 import Game from "../game/engine/Game";
 
 const game = new Game();
 
-const player = game.addEntity();
-player.addComponent(ColorRenderer).color = "#f00";
-player.addComponent(PlayerController);
-player.addComponent(Physics);
-player.addComponent(TileMapCollider);
-player.tag = "player";
+game.registerComponent(CameraController);
+game.registerComponent(CursorController);
+game.registerComponent(PlayerController);
+game.registerComponent(WorldGenerator);
 
-const camera = game.addEntity();
-camera.addComponent(Camera);
-camera.addComponent(CameraController);
-camera.tag = "camera";
+game.loadScene(scene0);
+const registry =
+	game
+		.getEntitiesWithComponent(TileRegistry)
+		.at(0)
+		?.getComponent(TileRegistry) ?? null;
+if (registry) registry.registerTiles(tileRegistry0);
 
-const tileMap = game.addEntity();
-tileMap.addComponent(TileMap);
-tileMap.addComponent(WorldGenerator);
-tileMap.addComponent(LightMap);
-const tileRegistry = tileMap.addComponent(TileRegistry);
-tileRegistry.registerTile({
-	tileId: 1,
-	name: "Dirt",
-	assetPath: "dirt.png",
-	solid: true,
-});
-tileRegistry.registerTile({
-	tileId: 2,
-	name: "Grass",
-	assetPath: "grass.png",
-	solid: true,
-});
-tileRegistry.registerTile({
-	tileId: 3,
-	name: "Stone",
-	assetPath: "stone.png",
-	solid: true,
-});
-tileRegistry.registerTile({
-	tileId: 4,
-	name: "Light",
-	assetPath: "light.png",
-	solid: false,
-	lightIntensity: 1,
-	lightRadius: 10,
-});
-tileMap.tag = "editableTileMap";
-
-const cursor = game.addEntity();
-cursor.addComponent(CursorController);
-cursor.addComponent(ColorRenderer).color = "rgba(255, 255, 255, 0.5)";
-
-game.setCamera(camera);
 game.start();
 
 const App: React.FC = () => {

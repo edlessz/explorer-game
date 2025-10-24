@@ -12,6 +12,8 @@ class CameraController extends Component {
 	public setup(): void {
 		this.followTarget = this.game.getEntity("player");
 		this.camera = this.entity.getComponent(Camera);
+
+		console.log(this);
 	}
 
 	public update(deltaTime: number): void {

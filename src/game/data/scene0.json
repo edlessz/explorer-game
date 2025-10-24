@@ -1,0 +1,42 @@
+{
+	"entities": [
+		{
+			"tag": "player",
+			"components": {
+				"ColorRenderer": {
+					"color": "#FF0000"
+				},
+				"PlayerController": {},
+				"Physics": {},
+				"TileMapCollider": {}
+			}
+		},
+		{
+			"tag": "cursor",
+			"components": {
+				"CursorController": {},
+				"ColorRenderer": {
+					"color": "rgba(255, 255, 255, 0.5)"
+				}
+			}
+		},
+		{
+			"tag": "camera",
+			"components": {
+				"Camera": {
+					"main": true
+				},
+				"CameraController": {}
+			}
+		},
+		{
+			"tag": "editableTileMap",
+			"components": {
+				"TileMap": {},
+				"WorldGenerator": {},
+				"LightMap": {},
+				"TileRegistry": {}
+			}
+		}
+	]
+}
