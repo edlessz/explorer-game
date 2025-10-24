@@ -22,7 +22,6 @@ class LightMap extends Component {
 			const decodedAddress = decodeAddress(addr);
 			this.bakeChunkLighting(decodedAddress.x, decodedAddress.y);
 		}
-		console.log(`Baked ${this.dirtyChunks.size} light map chunks`);
 		this.dirtyChunks.clear();
 	}
 

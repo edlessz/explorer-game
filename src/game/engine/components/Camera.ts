@@ -53,9 +53,15 @@ class Camera extends Component {
 
 		const { position, rotation } = this.entity.transform;
 
+		// Account for devicePixelRatio - viewport.width/height are in device pixels,
+		// but screenX/screenY are in CSS pixels
+		const dpr = window.devicePixelRatio || 1;
+		const cssWidth = viewport.width / dpr;
+		const cssHeight = viewport.height / dpr;
+
 		// Convert screen coordinates to normalized device coordinates (-1 to 1)
-		const ndcX = (screenX / viewport.width) * 2 - 1;
-		const ndcY = 1 - (screenY / viewport.height) * 2;
+		const ndcX = (screenX / cssWidth) * 2 - 1;
+		const ndcY = 1 - (screenY / cssHeight) * 2;
 
 		// Convert NDC to world coordinates
 		const worldX =

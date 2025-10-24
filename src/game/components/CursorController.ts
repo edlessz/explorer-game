@@ -32,6 +32,7 @@ class CursorController extends Component {
 
 		this.entity.transform.position.x = Math.floor(worldPos.x) + 0.5;
 		this.entity.transform.position.y = Math.floor(worldPos.y) + 0.5;
+
 		if (this.colorRenderer) this.colorRenderer.enabled = true;
 	}
 
