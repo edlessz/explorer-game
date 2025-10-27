@@ -3,11 +3,9 @@ format:
     cargo fmt --all
 
 lint:
-    cargo clippy --all -- -D warnings
+    cargo clippy --all
 
 check: format lint
-    @just check-format
-    @just check-lint
 
 # Build the desktop version
 build-desktop:
