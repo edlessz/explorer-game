@@ -1,3 +1,14 @@
+# Format & Lint
+format:
+    cargo fmt --all
+
+lint:
+    cargo clippy --all -- -D warnings
+
+check: format lint
+    @just check-format
+    @just check-lint
+
 # Build the desktop version
 build-desktop:
     cd game && cargo build

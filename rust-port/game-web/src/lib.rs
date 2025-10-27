@@ -1,7 +1,7 @@
+use engine::{Game, Renderer};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{Clamped, JsCast};
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
-use engine::{Game, Renderer};
 
 pub struct WasmRenderer {
     context: CanvasRenderingContext2d,

@@ -12,7 +12,6 @@ impl<R: Renderer> Game<R> {
         let buffer_size = width * height;
         let renderer = R::new(width, height, title);
 
-    
         Self {
             pixel_buffer: vec![0; buffer_size],
             width,

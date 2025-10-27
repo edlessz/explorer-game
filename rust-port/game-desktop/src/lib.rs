@@ -1,5 +1,5 @@
-use minifb::{Window, WindowOptions, Key};
 use engine::Renderer;
+use minifb::{Key, Window, WindowOptions};
 
 pub struct MiniFbRenderer {
     window: Window,
@@ -16,7 +16,7 @@ impl Renderer for MiniFbRenderer {
             WindowOptions {
                 resize: true,
                 ..Default::default()
-            }
+            },
         )
         .expect("Unable to create window");
 
