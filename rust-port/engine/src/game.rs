@@ -1,56 +1,59 @@
-use minifb::{Window, WindowOptions};
+use crate::renderer::Renderer;
 
-pub struct Game {
-    pixel_buffer: Vec<u8>,
-    window_buffer: Vec<u32>,
+pub struct Game<R: Renderer> {
+    pixel_buffer: Vec<u32>,
     width: usize,
     height: usize,
-    window: Window,
+    renderer: R,
 }
 
-impl Game {
-    pub fn new(width: usize, height: usize) -> Self {
-        // 3 bytes per pixel (RGB)
-        let buffer_size = width * height * 3;
+impl<R: Renderer> Game<R> {
+    pub fn new(width: usize, height: usize, title: &str) -> Self {
+        let buffer_size = width * height;
+        let renderer = R::new(width, height, title);
 
-        let mut window = Window::new(
-            "Explorer Game",
-            width,
-            height,
-            WindowOptions::default(),
-        )
-        .expect("Unable to create window");
-
-        // Limit to max ~60 fps update rate
-        window.set_target_fps(60);
-
+    
         Self {
             pixel_buffer: vec![0; buffer_size],
-            window_buffer: vec![0; width * height],
             width,
             height,
-            window,
+            renderer,
         }
     }
 
     pub fn run(&mut self) -> ! {
+        // draw red square in the center
+        let square_size = 100;
+        let start_x = (self.width - square_size) / 2;
+        let start_y = (self.height - square_size) / 2;
+        for y in start_y..start_y + square_size {
+            for x in start_x..start_x + square_size {
+                let index = y * self.width + x;
+                self.pixel_buffer[index] = 0xFF0000; // Red color in ARGB
+            }
+        }
+
         loop {
-            if !self.window.is_open() || self.window.is_key_down(minifb::Key::Escape) {
+            if !self.renderer.update(&self.pixel_buffer) {
                 std::process::exit(0);
             }
-
-            // Convert RGB buffer to u32 buffer for minifb
-            for i in 0..(self.width * self.height) {
-                let rgb_index = i * 3;
-                let r = self.pixel_buffer[rgb_index] as u32;
-                let g = self.pixel_buffer[rgb_index + 1] as u32;
-                let b = self.pixel_buffer[rgb_index + 2] as u32;
-                self.window_buffer[i] = (r << 16) | (g << 8) | b;
-            }
-
-            self.window
-                .update_with_buffer(&self.window_buffer, self.width, self.height)
-                .expect("Failed to update window");
         }
+    }
+
+    // For WASM: initialize and render once without the blocking loop
+    pub fn init_and_render(&mut self) {
+        // draw red square in the center
+        let square_size = 100;
+        let start_x = (self.width - square_size) / 2;
+        let start_y = (self.height - square_size) / 2;
+        for y in start_y..start_y + square_size {
+            for x in start_x..start_x + square_size {
+                let index = y * self.width + x;
+                self.pixel_buffer[index] = 0xFF0000; // Red color in ARGB
+            }
+        }
+
+        // Render once
+        self.renderer.update(&self.pixel_buffer);
     }
 }

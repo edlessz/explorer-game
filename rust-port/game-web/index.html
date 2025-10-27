@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Explorer Game - WASM</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+      }
+
+      .container {
+        text-align: center;
+        padding: 20px;
+      }
+
+      h1 {
+        color: white;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .subtitle {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
+        margin-bottom: 30px;
+      }
+
+      .canvas-wrapper {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        padding: 20px;
+        display: inline-block;
+      }
+
+      canvas {
+        display: block;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        border: 2px solid #333;
+        border-radius: 4px;
+      }
+
+      .status {
+        margin-top: 20px;
+        color: white;
+        font-size: 0.9rem;
+      }
+
+      .loading {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .ready {
+        color: #4ade80;
+        font-weight: bold;
+      }
+
+      .error {
+        color: #ef4444;
+        font-weight: bold;
+      }
+
+      .info {
+        margin-top: 30px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎮 Explorer Game</h1>
+      <p class="subtitle">Powered by Rust + WebAssembly</p>
+
+      <div class="canvas-wrapper">
+        <canvas id="viewport" width="800" height="600"></canvas>
+      </div>
+
+      <div class="status">
+        <span id="status-text" class="loading">Loading game...</span>
+      </div>
+
+      <div class="info">
+        <p>
+          The canvas is rendered entirely from Rust code compiled to
+          WebAssembly!
+        </p>
+      </div>
+    </div>
+
+    <script type="module">
+      const statusText = document.getElementById("status-text");
+
+      try {
+        statusText.textContent = "Initializing WebAssembly...";
+
+        // Import the WASM module
+        const { default: init } = await import("./pkg/game_web.js");
+
+        // Initialize the WASM module
+        await init();
+
+        statusText.textContent = "✓ Game Running!";
+        statusText.className = "ready";
+      } catch (error) {
+        console.error("Failed to load WASM:", error);
+        statusText.textContent = `✗ Error: ${error.message}`;
+        statusText.className = "error";
+      }
+    </script>
+  </body>
+</html>

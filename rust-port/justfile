@@ -1,0 +1,21 @@
+# Build the desktop version
+build-desktop:
+    cd game && cargo build
+
+# Run the desktop version
+run-desktop: build-desktop
+    cd game && cargo run
+
+# Build the web version
+build-web:
+    cd game-web && wasm-pack build --target web
+
+# Build and serve the web version
+serve-web: build-web
+    cd game-web && serve
+
+# Build everything
+build-all: build-desktop build-web
+
+# Default task
+default: build-all

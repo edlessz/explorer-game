@@ -1,0 +1,8 @@
+[package]
+name = "game-desktop"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+engine = { path = "../engine" }
+minifb = "0.27"

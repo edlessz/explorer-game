@@ -60,9 +60,6 @@ checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 [[package]]
 name = "engine"
 version = "0.1.0"
-dependencies = [
- "minifb",
-]
 
 [[package]]
 name = "errno"
@@ -180,6 +177,24 @@ name = "game"
 version = "0.1.0"
 dependencies = [
  "engine",
+ "game-desktop",
+]
+
+[[package]]
+name = "game-desktop"
+version = "0.1.0"
+dependencies = [
+ "engine",
+ "minifb",
+]
+
+[[package]]
+name = "game-web"
+version = "0.1.0"
+dependencies = [
+ "engine",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]

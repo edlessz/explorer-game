@@ -3,5 +3,7 @@
 members = [
     "engine",
     "game",
+    "game-desktop",
+    "game-web",
 ]
 resolver = "2"
