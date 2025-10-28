@@ -1,5 +1,5 @@
 pub mod game;
-pub mod renderer;
+pub mod platform;
 
 pub use game::Game;
-pub use renderer::Renderer;
+pub use platform::Platform;

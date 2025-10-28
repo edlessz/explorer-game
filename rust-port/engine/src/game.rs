@@ -1,22 +1,22 @@
-use crate::renderer::Renderer;
+use crate::platform::Platform;
 
-pub struct Game<R: Renderer> {
+pub struct Game<P: Platform> {
     pixel_buffer: Vec<u32>,
     width: usize,
     height: usize,
-    renderer: R,
+    platform: P,
 }
 
-impl<R: Renderer> Game<R> {
+impl<P: Platform> Game<P> {
     pub fn new(width: usize, height: usize, title: &str) -> Self {
         let buffer_size = width * height;
-        let renderer = R::new(width, height, title);
+        let platform = P::new(width, height, title);
 
         Self {
             pixel_buffer: vec![0; buffer_size],
             width,
             height,
-            renderer,
+            platform,
         }
     }
 
@@ -33,7 +33,7 @@ impl<R: Renderer> Game<R> {
         }
 
         loop {
-            if !self.renderer.update(&self.pixel_buffer) {
+            if !self.platform.update(&self.pixel_buffer) {
                 std::process::exit(0);
             }
         }
@@ -53,6 +53,6 @@ impl<R: Renderer> Game<R> {
         }
 
         // Render once
-        self.renderer.update(&self.pixel_buffer);
+        self.platform.update(&self.pixel_buffer);
     }
 }

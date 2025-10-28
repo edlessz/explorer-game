@@ -1,7 +1,9 @@
-pub trait Renderer {
+pub trait Platform {
     fn new(width: usize, height: usize, title: &str) -> Self
     where
         Self: Sized;
+
+    // Rendering
     fn update(&mut self, buffer: &[u32]) -> bool; // Returns false if window should close
     fn width(&self) -> usize;
     fn height(&self) -> usize;

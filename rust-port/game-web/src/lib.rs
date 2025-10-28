@@ -1,15 +1,15 @@
-use engine::{Game, Renderer};
+use engine::{Game, Platform};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{Clamped, JsCast};
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
 
-pub struct WasmRenderer {
+pub struct WebPlatform {
     context: CanvasRenderingContext2d,
     width: usize,
     height: usize,
 }
 
-impl Renderer for WasmRenderer {
+impl Platform for WebPlatform {
     fn new(width: usize, height: usize, _title: &str) -> Self {
         let window = web_sys::window().expect("no global `window` exists");
         let document = window.document().expect("should have a document on window");
@@ -86,7 +86,7 @@ pub fn start() -> Result<(), JsValue> {
     let width: usize = 800;
     let height: usize = 600;
 
-    let mut game = Game::<WasmRenderer>::new(width, height, "Explorer Game");
+    let mut game = Game::<WebPlatform>::new(width, height, "Explorer Game");
 
     // Initialize and render once (no infinite loop for WASM)
     game.init_and_render();

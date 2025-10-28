@@ -1,13 +1,13 @@
-use engine::Renderer;
+use engine::Platform;
 use minifb::{Key, Window, WindowOptions};
 
-pub struct MiniFbRenderer {
+pub struct DesktopPlatform {
     window: Window,
     width: usize,
     height: usize,
 }
 
-impl Renderer for MiniFbRenderer {
+impl Platform for DesktopPlatform {
     fn new(width: usize, height: usize, title: &str) -> Self {
         let mut window = Window::new(
             title,
