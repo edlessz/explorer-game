@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Explorer Game - Rust/WASM</title>
+    <style>
+        body {
+            margin: 0;
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            font-family: sans-serif;
+            color: #fff;
+        }
+        canvas {
+            border: 2px solid #333;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .controls {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="viewport" width="800" height="600" tabindex="0"></canvas>
+    <div class="controls">
+        Arrow keys / WASD - Move | Space - Jump | Left click - Place light | Right click - Erase
+    </div>
+    <script type="module">
+        import init from './game-web/pkg/game_web.js';
+
+        async function run() {
+            await init();
+            // Focus canvas for keyboard input
+            document.getElementById('viewport').focus();
+        }
+
+        run().catch(console.error);
+    </script>
+</body>
+</html>
